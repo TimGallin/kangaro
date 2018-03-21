@@ -1,10 +1,11 @@
 #include "kangaro.h"
 #include "pouchserver.h"
 
+
 #include <sys/socket.h>
 #include <netdb.h>
 #include <sys/un.h>
-
+#include <thread>
 
 #ifdef WIN32
 #define K_Getaddrinfo GetAddrInfo
@@ -88,3 +89,44 @@ bool PouchSvr::Init(){
 	return true;
 
 }
+
+
+/*
+ * Description:
+ * 	Run
+ */
+void PouchSvr::RunSvr(){
+	while(1){
+		int* pRfd = new int(0);
+		*pRfd = accept(_nSfd, NULL, NULL);
+
+		if(*pRfd != -1){
+			thread tdAccept(&PouchSvr::Accept, this, pRfd);
+			tdAccept.detach();
+		}
+		else{
+			//Log Error.
+		}
+
+	}
+}
+
+
+/*
+ *Description:
+ *	Accept
+ * Params:
+ * 	int* pRfd : accepted socket
+ */
+void PouchSvr::Accept(int* pRfd){
+	if(pRfd == NULL){
+		return;
+	}
+
+
+}
+
+
+
+
+

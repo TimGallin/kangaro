@@ -12,8 +12,28 @@ public:
 	 *	Init.
 	 */
 	bool Init();
+	
+	/*
+	 * Description:
+	 * 	Run
+	 */
+	void RunSvr();
 
 private:
+	/*
+	 *Description:
+	 *	Accept
+	 *
+	 * Params:
+	 * 	int* pRfd : accepted socket
+	 */
+	void Accept(int* pRfd);
+
+
+
+	//Vars
+	
+	/*Listen Socket*/
 	int _nSfd;
 };
 
