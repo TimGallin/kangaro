@@ -5,7 +5,12 @@ class HttpRecver{
 public:
 	HttpRecver();
 	~HttpRecver();
-
+	
+	/*
+	 * Description:
+	 * 		Recv on accepted socket.
+	 */
+	
 private:
 
 };
