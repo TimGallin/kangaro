@@ -10,47 +10,77 @@ using namespace std;
  * Description:
  * 		Get params by name.
  */
-char* HttpParams::GetParameter(const char* pName){
-	map<string,string>::iterator ite = _MapParams.find(key);
+const char* HttpParams::GetHeader(const char* pName){
+	map<string,string>::iterator ite = _KangaHeaders.find(pName);
 
-	if(ite == _MapPrams.end()){
+	if(ite == _KangaHeaders.end()){
 		return NULL;
 	}
 
-	return &ite->second;
+	return ite->second.c_str();
 }
 
 
 /*
  * Description:
- * 		Set parameter in pair of key-value
+ * 		Set http header in pair of name-value
  */		 
-template<typename T> 
-void HttpParamsi<T>::SetParameter(const char* pKey, const T& tVal){
-	stringstream ss;
-	ss<<tval;
-	
-	map<string,string>::iterator ite = _MapParams.find(key);
+//template<typename T> 
+void HttpParams::SetHeader(const char* pName, const char* pVal){
+	//std::stringstream ss;
+	//ss<<tVal;
 
-	if(ite == _MapParams.end()){
-		_MapParams.insert(pair<string,string>(pKey,ss.str()));
+	map<string, string>::iterator ite = _KangaHeaders.find(pName);
+
+	if(ite == _KangaHeaders.end()){
+		_KangaHeaders.insert(pair<string, string>(pName, pVal));
 	}
 	else{
-		_MapParams[pKey] = ss.str();
+		_KangaHeaders[pName] = pVal;
 	}
 }
 
 
 /*
  * Description:
- * 		Remove k-v pair via key name.
+ * 		Remove http header by name.
  */
-void HttpParams::RemoveParameter(const char* pKey){
-	map<string,string>::iterator ite = _MapParams.find(key);
+void HttpParams::RemoveHeader(const char* pKey){
+	map<string,string>::iterator ite = _KangaHeaders.find(pKey);
 
-	if(ite == _MapParams.end()){
+	if(ite == _KangaHeaders.end()){
 		return;
 	}
 
-	_MapParams.erase(ite);
+	_KangaHeaders.erase(ite);
+}
+
+
+/*
+ * Description:
+ * 		Get http request line information.
+ */
+Kanga_Http_Reqline& HttpParams::GetHttpReqLine(){
+	return _KangaReqLine;
+}
+
+
+/*
+ * Description:
+ * 		Get http body.
+ */
+Kanga_Http_Body& HttpParams::GetHttpBody(){
+	return _KangaBody;
+}
+
+
+
+/*
+ * Description:
+ * 		Clear
+ */
+void HttpParams::Clear(){
+	_KangaHeaders.clear();
+
+	map<string,string>().swap(_KangaHeaders);
 }
