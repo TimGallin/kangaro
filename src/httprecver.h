@@ -17,6 +17,13 @@ public:
 private:
 	
 	/*
+	 * Description: 
+	 * 		Realloc memory when buffer is too small.
+	 */
+	int ReallocParamReq(u_char* pStart, size_t sLen);
+		
+
+	/*
 	 * Description:
 	 * 		Recv from socket.Split entity into rows.
 	 */
@@ -27,7 +34,14 @@ private:
 	 * Description:
 	 * 		Process request line,parse request-line.
 	 */
-	int ProcessRequestLine(int nSfd, HttpParams& httpParam);
+	int ProcessRequestLine(Kanga_Http_RawRequest& rawRequest, HttpParams& httpParam);
+
+
+	/*
+	 * Description:
+	 * 		Parse request line.
+	 */
+	int ParseReqLine(Kanga_Http_RawRequest& rawRequest, HttpParams& httpParam);
 
 
 	/*

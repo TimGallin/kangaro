@@ -4,10 +4,19 @@
 #include <map>
 #include <sstream>
 
+typedef struct _tagRawRequestP{
+	u_char* pRaw;	//raw message
+	u_char* pPos;	//current handle posion
+	u_char* pTail;	//valid content
+	int nSize;	//buffer size
+}Kanga_Http_RawRequest;
+
+
 typedef struct _tagReqLine{
 	std::string sMethod;
 	std::string sUri;
-	std::string HttpVersion;
+	std::string sHttp;
+	std::string sVersion;
 }Kanga_Http_Reqline;
 
 

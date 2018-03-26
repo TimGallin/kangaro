@@ -15,6 +15,7 @@
 #include <pthread.h>
 
 
+#include "src/httpcode.h"
 
 /*Platform*/
 
