@@ -7,43 +7,21 @@ using namespace std;
  * Description:
  * 		Recv on accepted socket. Parse the httpentity into HttpParams.
  */
-bool HttpRecver::Process(int nSfd, HttpParams& httpParam){
+int HttpRecver::Process(int nSfd, HttpParams& httpParam){
 	if(nSfd == -1){
 		return false;
 	}
 
-
-	return true;
-}
-
-
-/*
- * Description:
- * 		Recv from socket.Split entity into rows.
- */
-bool HttpRecver::Read(int nSfd, HttpParams& httpParam){
-
 	Kanga_Http_RawRequest rawRequest;
-	rawRequest.pRaw = new char[Max_Client_HeaderSize];
+	rawRequest.pRaw = new u_char[Max_Client_HeaderSize];
 	rawRequest.nSize = Max_Client_HeaderSize;
-	string sRow = "";
- 	while(1){
-		int r = recv(nSfd, buf, Max_Client_HeaderSize, 0);
-		if(r !=1){
-			return false;
-		}
 
-		if(buf[0] == '\r'){
-			recv(nSfd, buf, 1, 0);
-			if(buf[0] == '\n'){
-				break;
-			}
-		}
 
-		sRow += buf[0];
-	}	
-	
-	ParseHeader(sRow, httpParam);
+	if(ProcessRequestLine(nSfd, rawRequest, httpParam) != KANGA_OK){
+		return KANGA_ERROR;
+	}
+
+	return KANGA_OK;
 }
 
 
@@ -51,19 +29,29 @@ bool HttpRecver::Read(int nSfd, HttpParams& httpParam){
  * Description:
  * 		Process request line,parse request-line.
  */
-int HttpRecver::ProcessRequestLine(Kanga_Http_RawRequest& rawRequest, HttpParams& httpParam){
-
+int HttpRecver::ProcessRequestLine(int nSfd, Kanga_Http_RawRequest& rawRequest, HttpParams& httpParam){
 	
 	for(;;){
-		int r = recv(nSfd, rawRequest.pRaw, Max_Client_HeaderSize, 0);
+		int r = recv(nSfd, rawRequest.pPos, Max_Client_HeaderSize, 0);
 		rawRequest.pTail += r;
 
 		int n = ParseReqLine(rawRequest, httpParam);
 		if(n == KANGA_OK){
 			break;
 		}
+
+		if(n == KANGA_AGAIN){
+			if(r == Max_Client_HeaderSize){
+				ReallocParamReq(rawRequest);
+			}
+
+			continue;
+		}
+
+		return KANGA_ERROR;
+
 	}	
-	return 0;
+	return KANGA_OK;
 }
 
 
@@ -83,12 +71,11 @@ int HttpRecver::ParseReqLine(Kanga_Http_RawRequest& rawRequest, HttpParams& http
 		sw_version,
 		sw_almost_done,
 		sw_done
-	}state;
+	}st = sw_start;
 
 	u_char* p = rawRequest.pPos;
 	u_char* r = p;               //last reference
 
-	state st = sw_start;
 	for(p; p != rawRequest.pTail; ++p){
 		u_char ch = *p;
 		switch(st){
@@ -103,7 +90,7 @@ int HttpRecver::ParseReqLine(Kanga_Http_RawRequest& rawRequest, HttpParams& http
 
 			case sw_method:
 				if(ch == ' '){
-					httpParam.GetHttpReqLine().sMethod.insert(0, r, (p - r));		
+					httpParam.GetHttpReqLine().sMethod.insert(0, (char*)r, (int)(p - r));		
 					st = sw_sp_bf_uri;
 				}
 				break;
@@ -115,7 +102,7 @@ int HttpRecver::ParseReqLine(Kanga_Http_RawRequest& rawRequest, HttpParams& http
 
 			case sw_uri:
 				if(ch == ' '){
-					httpParam.GetHttpReqLine().sUri.insert(0, r, (p - r));		
+					httpParam.GetHttpReqLine().sUri.insert(0, (char*)r, (int)(p - r));		
 					st = sw_sp_bf_http_schema;
 				}
 				break;
@@ -123,33 +110,33 @@ int HttpRecver::ParseReqLine(Kanga_Http_RawRequest& rawRequest, HttpParams& http
 			case sw_sp_bf_http_schema:
 				r =p;
 				st = sw_http;
-				break
+				break;
 
 			case sw_http:
 				if(ch == '/'){
-					httpParam.GetHttpReqLine().sHttp,insert(0, r, (p-r));
+					httpParam.GetHttpReqLine().sHttp.insert(0, (char*)r, (int)(p-r));
 					st = sw_slash_bf_version;
 				}
-				break
+				break;
 
 			case sw_slash_bf_version:
 				r = p;
 				st = sw_version;
-				break
+				break;
 
 			case sw_version:
 				if(ch == CR){
-					httpParam.GetHttpReqLine().sHttp,insert(0, r, (p-r));
+					httpParam.GetHttpReqLine().sHttp.insert(0, (char*)r, (int)(p-r));
 					st = sw_almost_done;
 				}
 
-				break
+				break;
 
 			case sw_almost_done:
 				if(ch == LF){
 					st = sw_done;
 				}
-				break
+				break;
 
 			case sw_done:
 				r = p;
@@ -184,4 +171,28 @@ void HttpRecver::ParseHeader(const std::string& sRow, HttpParams& httpParam){
 	
 
 	httpParam.SetHeader(sKey.c_str(), sVal.c_str());
+}
+
+
+/*
+ * Description: 
+ * 		Realloc memory when buffer is too small.
+ */
+int HttpRecver::ReallocParamReq(Kanga_Http_RawRequest& rawRequest){
+	int nNewSize = 2 * rawRequest.nSize;
+	int nContent = rawRequest.pTail - rawRequest.pRaw;
+	int nCurPos = rawRequest.pPos - rawRequest.pRaw;
+
+	u_char* pNew = new u_char[nNewSize];
+	memcpy(pNew, rawRequest.pRaw, nContent);
+
+	delete[] rawRequest.pRaw;
+
+	rawRequest.pRaw = pNew;
+	rawRequest.pPos = pNew + nCurPos;
+	rawRequest.nSize = nNewSize;
+
+	pNew = NULL;
+
+	return KANGA_OK;
 }

@@ -12,7 +12,7 @@ public:
 	 * Description:
 	 * 		Recv on accepted socket. Parse the httpentity into HttpParams.
 	 */
-	bool Process(int nSfd, HttpParams& httpParam);
+	int Process(int nSfd, HttpParams& httpParam);
 	
 private:
 	
@@ -20,21 +20,14 @@ private:
 	 * Description: 
 	 * 		Realloc memory when buffer is too small.
 	 */
-	int ReallocParamReq(u_char* pStart, size_t sLen);
+	int ReallocParamReq(Kanga_Http_RawRequest& rawRequest);
 		
-
-	/*
-	 * Description:
-	 * 		Recv from socket.Split entity into rows.
-	 */
-	bool Read(int nSfd, HttpParams& httpParam);
-
 
 	/*
 	 * Description:
 	 * 		Process request line,parse request-line.
 	 */
-	int ProcessRequestLine(Kanga_Http_RawRequest& rawRequest, HttpParams& httpParam);
+	int ProcessRequestLine(int nSfd, Kanga_Http_RawRequest& rawRequest, HttpParams& httpParam);
 
 
 	/*
@@ -43,6 +36,12 @@ private:
 	 */
 	int ParseReqLine(Kanga_Http_RawRequest& rawRequest, HttpParams& httpParam);
 
+
+	/*
+	 * Description:
+	 * 		Process Headers.
+	 */
+	int ProcessHeaders();
 
 	/*
 	 * Description:

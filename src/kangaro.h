@@ -15,7 +15,7 @@
 #include <pthread.h>
 
 
-#include "src/httpcode.h"
+#include "httpcode.h"
 
 /*Platform*/
 
@@ -37,6 +37,9 @@
 #define Max_Client_HeaderSize 1024
 
 
-
+#define LF     (u_char) '\n'
+#define CR     (u_char) '\r'
+#define CRLF     "\r\n"
+#define SP     ' '
 
 #endif 
