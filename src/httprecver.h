@@ -41,13 +41,13 @@ private:
 	 * Description:
 	 * 		Process Headers.
 	 */
-	int ProcessHeaders();
+	int ProcessHeaders(int nSfd, Kanga_Http_RawRequest& rawRequest, HttpParams& httpParam);
 
 	/*
 	 * Description:
 	 * 		Split row of HttpHeader into k-v pair,insert into HttpParam.
 	 */
-	void ParseHeader(const std::string& sRow, HttpParams& httpParam);
+	int ParseHeaders(Kanga_Http_RawRequest& rawRequest, HttpParams& httpParam);
 };
 
 

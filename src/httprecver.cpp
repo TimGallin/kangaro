@@ -126,7 +126,7 @@ int HttpRecver::ParseReqLine(Kanga_Http_RawRequest& rawRequest, HttpParams& http
 
 			case sw_version:
 				if(ch == CR){
-					httpParam.GetHttpReqLine().sHttp.insert(0, (char*)r, (int)(p-r));
+					httpParam.GetHttpReqLine().sVersion.insert(0, (char*)r, (int)(p-r));
 					st = sw_almost_done;
 				}
 
@@ -156,21 +156,64 @@ int HttpRecver::ParseReqLine(Kanga_Http_RawRequest& rawRequest, HttpParams& http
  * Description:
  *		Split row of HttpHeader into k-v pair,insert into HttpParam.
  */
-void HttpRecver::ParseHeader(const std::string& sRow, HttpParams& httpParam){
-	size_t Colon = sRow.find(':');
-	if(Colon == string::npos){
-		return;
+int HttpRecver::ParseHeaders(Kanga_Http_RawRequest& rawRequest, HttpParams& httpParam){
+
+	enum{
+		sw_line_start=0,
+		sw_line_almost_done,
+		sw_headers_almost_done,
+		sw_headers_done
+	}st = sw_line_start;
+
+	u_char* pStart = rawRequest.pPos;
+
+	for(pStart; pStart != rawRequest.pTail; ++pStart){
+		u_char ch = *rawRequest.pPos;
+
+		switch(st){
+			case sw_line_start:
+				if(ch == CR){
+					st = sw_line_almost_done;
+				}
+				break;
+
+			case sw_line_almost_done:
+				if(ch = LF){
+					string sRow((char*)pStart,(int)(pStart - rawRequest.pPos));
+					size_t Colon = sRow.find(':');
+					if(Colon == string::npos){
+						return KANGA_ERROR;
+					}
+
+					string sKey = sRow.substr(0, Colon-1);
+					string sVal = sRow.substr(Colon+1, sRow.length());
+
+					//Removing the key's leading and trailing whitespace.
+					sKey.erase(0, sKey.find_first_not_of(" "));
+					sKey.erase(sKey.find_last_not_of(" ") + 1);
+
+					httpParam.SetHeader(sKey.c_str(), sVal.c_str());
+
+					st = sw_headers_almost_done;
+				}
+				break;
+
+			case sw_headers_almost_done:
+				if(ch == CR){
+					st = sw_headers_done;
+				}else{
+					st = sw_line_start;
+				}
+				break;
+				
+			case sw_headers_done:
+				return KANGA_OK;
+		}
+				
 	}
 
-	string sKey = sRow.substr(0, Colon-1);
-	string sVal = sRow.substr(Colon+1, sRow.length());
+	return KANGA_AGAIN;
 
-	//Removing the key's leading and trailing whitespace.
-	sKey.erase(0, sKey.find_first_not_of(" "));
-	sKey.erase(sKey.find_last_not_of(" ") + 1);
-	
-
-	httpParam.SetHeader(sKey.c_str(), sVal.c_str());
 }
 
 
@@ -193,6 +236,34 @@ int HttpRecver::ReallocParamReq(Kanga_Http_RawRequest& rawRequest){
 	rawRequest.nSize = nNewSize;
 
 	pNew = NULL;
+
+	return KANGA_OK;
+}
+
+
+
+/*
+ * Description:
+ * 		Process Headers.
+ */
+int HttpRecver::ProcessHeaders(int nSfd, Kanga_Http_RawRequest& rawRequest, HttpParams& httpParam){
+	for(;;){
+		int r = ParseHeaders(rawRequest, httpParam);
+
+		if(r == KANGA_ERROR){
+			return KANGA_ERROR;
+		}
+
+		if(r == KANGA_OK){
+			break;
+		}
+
+		if(r == KANGA_AGAIN){
+			ReallocParamReq(rawRequest);
+			int r = recv(nSfd, rawRequest.pPos, Max_Client_HeaderSize, 0);
+			rawRequest.pTail += r;
+		}
+	}
 
 	return KANGA_OK;
 }
