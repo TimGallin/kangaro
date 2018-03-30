@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<http_config>
+	<server name="test.server" port="8080" >
+		<reflection>
+			<signal>/test/*</signal>
+			<slot>/plugin/test.so</slot>
+		</reflection>
+	</server>
+</http_config>

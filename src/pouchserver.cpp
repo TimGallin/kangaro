@@ -1,6 +1,6 @@
 #include "kangaro.h"
 #include "pouchserver.h"
-
+#include "httprecver.h"
 
 using namespace std;
 
@@ -105,6 +105,13 @@ void PouchSvr::RunSvr(){
  */
 void PouchSvr::Accept(int* pRfd){
 	if(pRfd == NULL){
+		return;
+	}
+	
+	HttpParams httpParam;
+
+	HttpRecver recver;
+	if(recver.Process(*pRfd, httpParam) != KANGA_OK){
 		return;
 	}
 

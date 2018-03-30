@@ -3,6 +3,14 @@
 
 using namespace std;
 
+
+HttpRecver::HttpRecver(){
+}
+
+HttpRecver::~HttpRecver(){
+}
+
+
 /*
  * Description:
  * 		Recv on accepted socket. Parse the httpentity into HttpParams.
@@ -18,6 +26,10 @@ int HttpRecver::Process(int nSfd, HttpParams& httpParam){
 
 
 	if(ProcessRequestLine(nSfd, rawRequest, httpParam) != KANGA_OK){
+		return KANGA_ERROR;
+	}
+	
+	if(ProcessHeaders(nSfd, rawRequest, httpParam) != KANGA_OK){
 		return KANGA_ERROR;
 	}
 

@@ -14,6 +14,9 @@
 #include <thread>
 #include <pthread.h>
 
+//TinyXml2
+#include "tinyxml2/tinyxml2.h"
+
 
 #include "httpcode.h"
 
