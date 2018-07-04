@@ -3,3 +3,9 @@
 log/
 tmp/
 pid/
+Debug/
+kangaro/
+*.sln
+*.sdf
+*.opensdf
+*.suo

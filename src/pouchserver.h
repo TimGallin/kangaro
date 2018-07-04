@@ -27,14 +27,14 @@ private:
 	 * Params:
 	 * 	int* pRfd : accepted socket
 	 */
-	void Accept(int* pRfd);
+	void Accept(int pRfd);
 
 
 
 	//Vars
 	
 	/*Listen Socket*/
-	int _nSfd;
+	kangaro_socket_t _listen_sd;
 };
 
 

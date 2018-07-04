@@ -15,5 +15,6 @@ HttpConfig::~HttpConfig(){
  * 		Load config file,read it into memory.
  */
 int HttpConfig::Load(const char* pConfigFile){
-	tinyxml2::
+
+	return 0;
 }

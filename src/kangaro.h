@@ -6,13 +6,11 @@
 #include <iostream>
 #include <string>
 #include <errno.h>
-#include <unistd.h>
 
-#include <sys/socket.h>
-#include <netdb.h>
-#include <sys/un.h>
+
+
 #include <thread>
-#include <pthread.h>
+
 
 //TinyXml2
 #include "tinyxml2/tinyxml2.h"
@@ -22,16 +20,23 @@
 
 /*Platform*/
 
-#ifdef WIN32
-#define K_Getaddrinfo GetAddrInfo
-#define K_FreeAddrInfo FreeAddrInfo
-
+#ifdef _WIN32
+#include "os\win.h"
 #else
+#include <unistd.h>
+#include <pthread.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <sys/un.h>
+
+
 #define K_Getaddrinfo getaddrinfo
 #define K_FreeAddrInfo freeaddrinfo
 
 #endif
 
+#define GLOG_NO_ABBREVIATED_SEVERITIES
+#include <glog\logging.h>
 
 /*Implicit*/
 #define KANGARO_PORT "50203"

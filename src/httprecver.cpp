@@ -44,7 +44,7 @@ int HttpRecver::Process(int nSfd, HttpParams& httpParam){
 int HttpRecver::ProcessRequestLine(int nSfd, Kanga_Http_RawRequest& rawRequest, HttpParams& httpParam){
 	
 	for(;;){
-		int r = recv(nSfd, rawRequest.pPos, Max_Client_HeaderSize, 0);
+		int r = recv(nSfd, (char*)rawRequest.pPos, Max_Client_HeaderSize, 0);
 		rawRequest.pTail += r;
 
 		int n = ParseReqLine(rawRequest, httpParam);
@@ -272,7 +272,7 @@ int HttpRecver::ProcessHeaders(int nSfd, Kanga_Http_RawRequest& rawRequest, Http
 
 		if(r == KANGA_AGAIN){
 			ReallocParamReq(rawRequest);
-			int r = recv(nSfd, rawRequest.pPos, Max_Client_HeaderSize, 0);
+			int r = recv(nSfd, (char*)rawRequest.pPos, Max_Client_HeaderSize, 0);
 			rawRequest.pTail += r;
 		}
 	}
