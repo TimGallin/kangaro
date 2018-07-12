@@ -40,7 +40,7 @@ bool PouchSvr::Init(){
 	for (rp = result; rp != NULL; rp->ai_next){
 		/*Create socket.*/
 		_listen_sd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-		if (_listen_sd == -1){
+		if (_listen_sd == kangaro_invalid_socket){
 			LOG(ERROR) << "Create socket failed.wsa error:" << kangaro_socket_errno;
 			continue;
 		}
@@ -83,7 +83,7 @@ bool PouchSvr::Init(){
  */
 void PouchSvr::RunSvr(){
 	int i, len, rc, on = 1;
-	int    desc_ready, end_server = FALSE;
+	int    desc_ready;
 	BOOL end_server = FALSE;
 
 	kangaro_socket_t incoming = 1;
@@ -135,8 +135,8 @@ void PouchSvr::RunSvr(){
 						memset(&user_peer, 0, sizeof(user_peer));
 						len = sizeof(user_peer);
 						incoming = accept(_listen_sd, (PSOCKADDR)&user_peer, &len);
-						if (incoming < 0){
-							if (kangaro_socket_errno != EWOULDBLOCK){
+						if (incoming == kangaro_invalid_socket){
+							if (kangaro_socket_errno != kangaro_ewouldblock){
 								LOG(ERROR) << "accept() failed. " << kangaro_socket_errno;
 								end_server = TRUE;
 								break;
@@ -156,6 +156,7 @@ void PouchSvr::RunSvr(){
 					/* failure occurs, we will close the          */
 					/* connection.                                */
 					/**********************************************/
+					Accept(master_set.fd_array[i]);
 				}
 			}
 
@@ -164,29 +165,6 @@ void PouchSvr::RunSvr(){
 			}
 		}
 
-
-		//for (int i = 0; i < master_set.fd_count; ++i){
-		//	if (_nSfd == master_set.fd_array[i]){
-		//		if (master_set.fd_count < FD_SETSIZE){
-		//			sockaddr_in in;
-		//			int len = sizeof(in);
-		//			kangaro_socket_t sIn = accept(master_set.fd_array[i], (PSOCKADDR)&in, &len);
-		//			if (sIn != -1){
-		//				//FD_SET(sIn, &fdread);
-		//				LOG(INFO) << "recv connection, " << inet_ntoa(in.sin_addr);
-		//			}
-		//			else{
-		//				LOG(ERROR) << "accept failed.";
-		//			}
-		//		}
-		//		else{
-		//			LOG(WARNING) << "connections upto limit.";
-		//		}
-		//	}
-		//	
-
-		//std::thread tdAccept(&PouchSvr::Accept, this, fdread.fd_array[i]);
-		//tdAccept.detach();
 	}
 
 

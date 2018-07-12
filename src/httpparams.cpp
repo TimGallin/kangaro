@@ -3,84 +3,64 @@
 
 #include <sstream>
 
-using namespace std;
 
+namespace kangaro{
+	/*
+	--------------------------------------
+	HTTP Request.
+	--------------------------------------
+	*/
+	/*
+	 * Description:
+	 * 		Get params by name.
+	 */
+	const char* HttpRequest::GetHeader(const std::string& header){
+		//kanga_headers::iterator ite = _headers.find(header);
 
-/*
- * Description:
- * 		Get params by name.
- */
-const char* HttpParams::GetHeader(const char* pName){
-	map<string,string>::iterator ite = _KangaHeaders.find(pName);
+		//if (ite == _headers.end()){
+		//	return "";
+		//}
 
-	if(ite == _KangaHeaders.end()){
-		return NULL;
+		return _headers["header"].c_str();
 	}
 
-	return ite->second.c_str();
-}
 
+	/*
+	 * Description:
+	 * 		Set http header in pair of name-value
+	 */
+	void HttpRequest::SetHeader(const std::string& header, const std::string& pVal){
+		kanga_headers::iterator ite = _headers.find(header);
 
-/*
- * Description:
- * 		Set http header in pair of name-value
- */		 
-//template<typename T> 
-void HttpParams::SetHeader(const char* pName, const char* pVal){
-	//std::stringstream ss;
-	//ss<<tVal;
-
-	map<string, string>::iterator ite = _KangaHeaders.find(pName);
-
-	if(ite == _KangaHeaders.end()){
-		_KangaHeaders.insert(pair<string, string>(pName, pVal));
-	}
-	else{
-		_KangaHeaders[pName] = pVal;
-	}
-}
-
-
-/*
- * Description:
- * 		Remove http header by name.
- */
-void HttpParams::RemoveHeader(const char* pKey){
-	map<string,string>::iterator ite = _KangaHeaders.find(pKey);
-
-	if(ite == _KangaHeaders.end()){
-		return;
+		if (ite == _headers.end()){
+			_headers.insert(std::pair<std::string, std::string>(std::move(header), std::move(pVal)));
+		}
+		else{
+			_headers[header] = pVal;
+		}
 	}
 
-	_KangaHeaders.erase(ite);
-}
 
-
-/*
- * Description:
- * 		Get http request line information.
- */
-Kanga_Http_Reqline& HttpParams::GetHttpReqLine(){
-	return _KangaReqLine;
-}
-
-
-/*
- * Description:
- * 		Get http body.
- */
-Kanga_Http_Body& HttpParams::GetHttpBody(){
-	return _KangaBody;
-}
+	/*
+	 * Description:
+	 * 		Get http body.
+	 */
+	const char* HttpRequest::GetHttpBody(){
+		return _sBody.c_str();
+	}
 
 
 
-/*
- * Description:
- * 		Clear
- */
-void HttpParams::Clear(){
-	_KangaHeaders.clear();
+	/*
+	--------------------------------------
+	HTTP Respond.
+	--------------------------------------
+	*/
+	HttpRespond::HttpRespond()
+	{
+	}
 
-	map<string,string>().swap(_KangaHeaders);
+	HttpRespond::~HttpRespond()
+	{
+	}
 }

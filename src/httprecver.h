@@ -3,53 +3,50 @@
 
 #include "httpparams.h"
 
-class HttpRecver{
-public:
-	HttpRecver();
-	~HttpRecver();
-	
-	/*
-	 * Description:
-	 * 		Recv on accepted socket. Parse the httpentity into HttpParams.
-	 */
-	int Process(int nSfd, HttpParams& httpParam);
-	
-private:
-	
-	/*
-	 * Description: 
-	 * 		Realloc memory when buffer is too small.
-	 */
-	int ReallocParamReq(Kanga_Http_RawRequest& rawRequest);
-		
+namespace kangaro{
+	class HttpRecver{
+	public:
+		HttpRecver();
+		~HttpRecver();
 
-	/*
-	 * Description:
-	 * 		Process request line,parse request-line.
-	 */
-	int ProcessRequestLine(int nSfd, Kanga_Http_RawRequest& rawRequest, HttpParams& httpParam);
+		/*
+		 * Description:
+		 * 		Recv on accepted socket. Parse the httpentity into HttpParams.
+		 */
+		int Process(const socklen_t s, HTTPMessage& httpParam);
 
+	private:
 
-	/*
-	 * Description:
-	 * 		Parse request line.
-	 */
-	int ParseReqLine(Kanga_Http_RawRequest& rawRequest, HttpParams& httpParam);
+		/*
+		 * Description:
+		 * 		Process request line,parse request-line.
+		 */
+		int ProcessRequestLine(const socklen_t s, urlparts &http_url);
 
+		/*
+		 * Description:
+		 * 		Process Headers.
+		 */
+		int ProcessHeaders(const socklen_t s, kanga_headers& http_headers);
 
-	/*
-	 * Description:
-	 * 		Process Headers.
-	 */
-	int ProcessHeaders(int nSfd, Kanga_Http_RawRequest& rawRequest, HttpParams& httpParam);
+		/*
+		* Description:
+		* 		Process Body.
+		*/
+		int ProcessBody(const socklen_t s, kanga_body& http_headers);
 
-	/*
-	 * Description:
-	 * 		Split row of HttpHeader into k-v pair,insert into HttpParam.
-	 */
-	int ParseHeaders(Kanga_Http_RawRequest& rawRequest, HttpParams& httpParam);
-};
+		void InitBuffer();
 
+		void ExpandBuffer(kangaro_request_buffer* buf);
 
+		void FreeBuffer(kangaro_request_buffer* buf);
+
+		void FreeAllBuffer(kangaro_request_buffer* head);
+
+		kangaro_request_buffer* _head_buf;
+		kangaro_request_buffer* _request_buf;
+	};
+
+}
 
 #endif

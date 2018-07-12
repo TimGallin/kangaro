@@ -3,82 +3,103 @@
 
 #include <map>
 #include <sstream>
-
-typedef struct _tagRawRequestP{
-	u_char* pRaw;	//raw message
-	u_char* pPos;	//current handle posion
-	u_char* pTail;	//valid content
-	int nSize;	//buffer size
-}Kanga_Http_RawRequest;
-
-
-typedef struct _tagReqLine{
-	std::string sMethod;
-	std::string sUri;
-	std::string sHttp;
-	std::string sVersion;
-}Kanga_Http_Reqline;
-
-
-typedef struct _tagHttpBody{
-	std::string sBody;
-	int nCachingFile:1;
-	std::string sCachingFile;
-}Kanga_Http_Body;
-
-class HttpParams{
-public:
-	/*
-	 * Description:
-	 * 		Get http header by name.
-	 */
-	const char* GetHeader(const char* pName);
-
+namespace kangaro{
 
 	/*
-	 * Description:
-	 * 		Set http header in pair of key-value
-	 */		 
-	void SetHeader(const char* pName, const char* pVal);
+	--------------------------------------
+	URL component parts.
+	--------------------------------------
+	*/
+	typedef struct _urlparts {
+		///
+		// The complete URL specification.
+		///
+		std::string spec;
+
+		///
+		// Scheme component not including the colon (e.g., "http").
+		///
+		std::string scheme;
+
+		///
+		// User name component.
+		///
+		std::string username;
+
+		///
+		// Password component.
+		///
+		std::string password;
+
+		///
+		// Host component. This may be a hostname, an IPv4 address or an IPv6 literal
+		// surrounded by square brackets (e.g., "[2001:db8::1]").
+		///
+		std::string host;
+
+		///
+		// Port number component.
+		///
+		std::string port;
+
+		///
+		// Origin contains just the scheme, host, and port from a URL. Equivalent to
+		// clearing any username and password, replacing the path with a slash, and
+		// clearing everything after that. This value will be empty for non-standard
+		// URLs.
+		///
+		std::string origin;
+
+		///
+		// Path component including the first slash following the host.
+		///
+		std::string path;
+
+		///
+		// Query string component (i.e., everything following the '?').
+		///
+		std::string query;
+	} urlparts;
+
 
 	/*
-	 * Description:
-	 * 		Remove http header by name.
-	 */
-	void RemoveHeader(const char* pKey);
-
-
-	/*
-	 * Description:
-	 * 		Get http request line information.
-	 */
-	Kanga_Http_Reqline& GetHttpReqLine();
-
+	--------------------------------------
+	HTTP HEADER
+	--------------------------------------
+	*/
+	typedef std::map<std::string, std::string> kanga_headers;
 
 	/*
-	 * Description:
-	 * 		Get http body.
-	 */
-	Kanga_Http_Body& GetHttpBody();
-
+	--------------------------------------
+	HTTP BODY
+	--------------------------------------
+	*/
+	typedef std::string kanga_body;
 
 	/*
-	 * Description:
-	 * 		Clear
-	 */
-	void Clear();
+	--------------------------------------
+	HTTP Message.
+	--------------------------------------
+	*/
+	typedef struct _HttpMsg{
+		urlparts http_url;
+		kanga_headers http_headers;
+		kanga_body http_body;
+	}HTTPMessage;
 
-private:
 	/*
-	 * general-header & request-header & entity-header.
-	 */
-	std::map<std::string, std::string> _KangaHeaders;
+	--------------------------------------
+	Request Buffer.
+	--------------------------------------
+	*/
+	typedef struct _kangaro_request_buffer_{
+		unsigned char* buffer;
+		size_t buffer_size;
+		size_t valid_len;
+		size_t last_read;
 
-	/*Request Line.*/
-	Kanga_Http_Reqline _KangaReqLine;
-	
-	/*Http Body*/
-	Kanga_Http_Body _KangaBody;
-};
-
+		kangaro_request_buffer* last; //last buffer
+		kangaro_request_buffer* next; //next buffer
+	}kangaro_request_buffer;
+}
 #endif

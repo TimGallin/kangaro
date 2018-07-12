@@ -10,9 +10,11 @@ typedef int     socklen_t;
 
 
 //error
+#define kangaro_invalid_socket INVALID_SOCKET 
 #define kangaro_errno                  GetLastError()
 #define kangaro_socket_errno           WSAGetLastError()
 
+#define kangaro_ewouldblock WSAEWOULDBLOCK
 #define kangaro_socket_close closesocket
 #define kangaro_socket_shutdown shutdown
 namespace kangaro_soc{
@@ -21,8 +23,6 @@ namespace kangaro_soc{
 	int soc_nonblocking(kangaro_socket_t s);
 
 	int soc_blocking(kangaro_socket_t s);
-
-
 }
 
 

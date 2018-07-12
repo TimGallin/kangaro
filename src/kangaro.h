@@ -6,9 +6,6 @@
 #include <iostream>
 #include <string>
 #include <errno.h>
-
-
-
 #include <thread>
 
 
@@ -23,15 +20,6 @@
 #ifdef _WIN32
 #include "os\win.h"
 #else
-#include <unistd.h>
-#include <pthread.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <sys/un.h>
-
-
-#define K_Getaddrinfo getaddrinfo
-#define K_FreeAddrInfo freeaddrinfo
 
 #endif
 
@@ -45,8 +33,8 @@
 #define Max_Client_HeaderSize 1024
 
 
-#define LF     (u_char) '\n'
-#define CR     (u_char) '\r'
+#define LF     '\n'
+#define CR     '\r'
 #define CRLF     "\r\n"
 #define SP     ' '
 
