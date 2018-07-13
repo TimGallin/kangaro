@@ -7,7 +7,7 @@
 #include <WS2tcpip.h>
 typedef SOCKET  kangaro_socket_t;
 typedef int     socklen_t;
-
+typedef HMODULE  kangaro_module;
 
 //error
 #define kangaro_invalid_socket INVALID_SOCKET 
@@ -23,6 +23,12 @@ namespace kangaro_soc{
 	int soc_nonblocking(kangaro_socket_t s);
 
 	int soc_blocking(kangaro_socket_t s);
+
+	kangaro_module load_lib(const char* lib);
+
+	void free_lib(kangaro_module h);
+
+	void* get_lib_funtion(kangaro_module h, const char* f);
 }
 
 

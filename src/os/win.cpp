@@ -26,4 +26,16 @@ namespace kangaro_soc{
 
 		return ioctlsocket(s, FIONBIO, &nb);
 	}
+
+	kangaro_module load_lib(const char* lib){
+		return ::LoadLibraryA(lib);
+	}
+
+	void free_lib(kangaro_module h){
+		FreeLibrary(h);
+	}
+
+	void* get_lib_funtion(kangaro_module h, const char* f){
+		return ::GetProcAddress(h, f);
+	}
 }

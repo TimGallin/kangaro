@@ -21,7 +21,7 @@ namespace kangaro{
 		 * Description:
 		 * 		Process request line,parse request-line.
 		 */
-		int ProcessRequestLine(const socklen_t s, urlparts &http_url);
+		int ProcessRequestLine(const socklen_t s, request_uri &http_request);
 
 		/*
 		 * Description:
@@ -30,10 +30,12 @@ namespace kangaro{
 		int ProcessHeaders(const socklen_t s, kanga_headers& http_headers);
 
 		/*
-		* Description:
-		* 		Process Body.
+		Description:
+		 		Process Body.
+
+		@param len : Content-Length
 		*/
-		int ProcessBody(const socklen_t s, kanga_body& http_headers);
+		int ProcessBody(const socklen_t s, const int len, kanga_body& http_body);
 
 		void InitBuffer();
 

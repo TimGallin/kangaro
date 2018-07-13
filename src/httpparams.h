@@ -8,6 +8,7 @@ namespace kangaro{
 	/*
 	--------------------------------------
 	URL component parts.
+	http_URL = "http:" "//" host [ ":" port ] [ abs_path [ "?" query ]]
 	--------------------------------------
 	*/
 	typedef struct _urlparts {
@@ -22,16 +23,6 @@ namespace kangaro{
 		std::string scheme;
 
 		///
-		// User name component.
-		///
-		std::string username;
-
-		///
-		// Password component.
-		///
-		std::string password;
-
-		///
 		// Host component. This may be a hostname, an IPv4 address or an IPv6 literal
 		// surrounded by square brackets (e.g., "[2001:db8::1]").
 		///
@@ -41,14 +32,6 @@ namespace kangaro{
 		// Port number component.
 		///
 		std::string port;
-
-		///
-		// Origin contains just the scheme, host, and port from a URL. Equivalent to
-		// clearing any username and password, replacing the path with a slash, and
-		// clearing everything after that. This value will be empty for non-standard
-		// URLs.
-		///
-		std::string origin;
 
 		///
 		// Path component including the first slash following the host.
@@ -61,6 +44,29 @@ namespace kangaro{
 		std::string query;
 	} urlparts;
 
+
+	/*
+	--------------------------------------
+	Request-URI.
+	Request-URI = "*" | absoluteURI | abs_path | authority
+	--------------------------------------
+	*/
+	typedef struct _request_uri_ {
+		// The complete Request-URI specification.
+		std::string spec;
+
+		// HTTP Opiton.Reffer to https://tools.ietf.org/html/rfc2616#section-9.2
+		std::string option;
+
+		// Absolute path. Refer to https://tools.ietf.org/html/rfc2616#section-5.1.2.
+		std::string ab_path;
+
+		// Relative path. Refer to https://tools.ietf.org/html/rfc2616#section-5.1.2.
+		std::string abs_path;
+
+		//HTTP VERSION
+		std::string version;
+	} request_uri;
 
 	/*
 	--------------------------------------
@@ -83,6 +89,7 @@ namespace kangaro{
 	*/
 	typedef struct _HttpMsg{
 		urlparts http_url;
+		request_uri http_request_uri;
 		kanga_headers http_headers;
 		kanga_body http_body;
 	}HTTPMessage;
@@ -98,8 +105,8 @@ namespace kangaro{
 		size_t valid_len;
 		size_t last_read;
 
-		kangaro_request_buffer* last; //last buffer
-		kangaro_request_buffer* next; //next buffer
+		_kangaro_request_buffer_* last; //last buffer
+		_kangaro_request_buffer_* next; //next buffer
 	}kangaro_request_buffer;
 }
 #endif

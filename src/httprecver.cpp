@@ -35,9 +35,9 @@ namespace kangaro{
 			return KANGA_ERROR;
 		}
 
-		ExpandBuffer(_request_buf);
+		InitBuffer();
 
-		if (ProcessRequestLine(s, httpParam.http_url) != KANGA_OK){
+		if (ProcessRequestLine(s, httpParam.http_request_uri) != KANGA_OK){
 			return KANGA_ERROR;
 		}
 
@@ -46,7 +46,7 @@ namespace kangaro{
 		}
 
 		if (httpParam.http_headers.find("Content-Length") != httpParam.http_headers.end()){
-			if (ProcessBody(s, httpParam.http_body) != KANGA_OK){
+			if (ProcessBody(s, atol(httpParam.http_headers["Content-Length"].c_str()), httpParam.http_body) != KANGA_OK){
 				return KANGA_ERROR;
 			}
 		}
@@ -59,7 +59,7 @@ namespace kangaro{
 	 * Description:
 	 * 		Process request line,parse request-line.
 	 */
-	int HttpRecver::ProcessRequestLine(const socklen_t s, urlparts &http_url){
+	int HttpRecver::ProcessRequestLine(const socklen_t s, request_uri &http_request){
 		int r = recv(s + 1, (char*)_request_buf->buffer, _request_buf->buffer_size, 0);
 		_request_buf->valid_len = r;
 
@@ -69,13 +69,14 @@ namespace kangaro{
 			c = *(p + _request_buf->last_read);
 			if (c == LF){
 				if (*(p + _request_buf->last_read - 1) == CR){
+					++_request_buf->last_read;
 					break;
 				}
 			}
 		}
 
 
-		if (!URLParse(std::string(_request_buf->buffer, _request_buf->buffer + _request_buf->last_read), http_url)){
+		if (!RequestURIParse(std::string(_request_buf->buffer, _request_buf->buffer + _request_buf->last_read), http_request)){
 			return KANGA_ERROR;
 		}
 
@@ -84,7 +85,7 @@ namespace kangaro{
 
 	int HttpRecver::ProcessHeaders(const socklen_t s, kanga_headers& http_headers){
 		std::string key = "", value = "";
-		size_t line_start = 0, line_end = 0;
+		size_t line_start = _request_buf->last_read, line_end = 0;
 		char* p = (char*)_request_buf->buffer;
 		char c;
 		for (_request_buf->last_read; _request_buf->last_read != _request_buf->valid_len; ++_request_buf->last_read){
@@ -95,10 +96,12 @@ namespace kangaro{
 
 					if (line_start == line_end - 1){
 						//CRLF CRLF means HTTP headers over
+						++_request_buf->last_read;
 						break;
 					}
 
-					if (HeaderParse(std::string(p + line_start, p + line_end), key, value)){
+					//Parse header without CRLF
+					if (HeaderParse(std::string(p + line_start, p + line_end - 1), key, value)){
 						http_headers.insert(std::make_pair(std::move(key), std::move(value)));
 					}
 					
@@ -111,8 +114,30 @@ namespace kangaro{
 		return KANGA_OK;
 	}
 
-	int HttpRecver::ProcessBody(const socklen_t s, kanga_body& http_headers){
+	int HttpRecver::ProcessBody(const socklen_t s, const int len, kanga_body& http_body){
+		size_t body_read = 0;
+		http_body.reserve(len);
+		while (_request_buf)
+		{
+			int part_start = _request_buf->last_read;
+			for (_request_buf->last_read; _request_buf->last_read != _request_buf->valid_len; ++_request_buf->last_read){
+				
+				++body_read;
+			}
 
+			http_body.append((char*)(_request_buf->buffer + part_start), (char*)(_request_buf->buffer + _request_buf->last_read));
+
+			if (body_read == len){
+				break;
+			}
+
+			
+			ExpandBuffer(_request_buf);
+			_request_buf = _request_buf->next;
+			
+			int r = recv(s + 1, (char*)_request_buf->buffer, len - body_read, 0);
+			
+		}
 
 
 		return KANGA_OK;
@@ -128,6 +153,7 @@ namespace kangaro{
 
 		next_buf->last = buf;
 		next_buf->next = NULL;
+
 	}
 
 	void HttpRecver::FreeBuffer(kangaro_request_buffer* buf){
@@ -140,7 +166,15 @@ namespace kangaro{
 	}
 
 	void HttpRecver::FreeAllBuffer(kangaro_request_buffer* head){
+		kangaro_request_buffer* gc = _head_buf;
+		while (gc)
+		{
+			free(gc->buffer);
+			_head_buf = _head_buf->next;
+			delete gc;
 
+			gc = _head_buf;
+		} 
 	}
 
 

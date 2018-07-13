@@ -9,8 +9,6 @@
 #include <thread>
 
 
-//TinyXml2
-#include "tinyxml2/tinyxml2.h"
 
 
 #include "httpcode.h"
@@ -27,7 +25,6 @@
 #include <glog\logging.h>
 
 /*Implicit*/
-#define KANGARO_PORT "50203"
 #define KANGARO_BACKLOG 50
 
 #define Max_Client_HeaderSize 1024

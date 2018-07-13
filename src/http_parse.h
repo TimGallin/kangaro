@@ -14,6 +14,11 @@ namespace kangaro{
 	*/
 	bool URLParse(const std::string& spec, urlparts& patrs);
 
+	/*
+	Parse HTTP Request-Uri
+	Request-URI = "*" | absoluteURI | abs_path | authority
+	*/
+	bool RequestURIParse(const std::string& spec, request_uri& request);
 
 	/*
 	Parse http header line.
