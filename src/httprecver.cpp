@@ -68,7 +68,7 @@ namespace kangaro{
 		for (_request_buf->last_read; _request_buf->last_read != r; ++_request_buf->last_read){
 			c = *(p + _request_buf->last_read);
 			if (c == LF){
-				if (*(p + _request_buf->last_read - 1) == CR){
+				if (*(p + _request_buf->last_read - 1) == KCR){
 					++_request_buf->last_read;
 					break;
 				}
@@ -91,7 +91,7 @@ namespace kangaro{
 		for (_request_buf->last_read; _request_buf->last_read != _request_buf->valid_len; ++_request_buf->last_read){
 			c = *(p + _request_buf->last_read);
 			if (c == LF){
-				if (*(p + _request_buf->last_read - 1) == CR){
+				if (*(p + _request_buf->last_read - 1) == KCR){
 					line_end = _request_buf->last_read;
 
 					if (line_start == line_end - 1){

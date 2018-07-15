@@ -2,7 +2,7 @@
 
 
 
-namespace kangaro_soc{
+namespace kangaro_os {
 	int soc_init(){
 		WSADATA wsaData;
 		
@@ -23,7 +23,7 @@ namespace kangaro_soc{
 
 	int soc_blocking(kangaro_socket_t s){
 		unsigned long  nb = 0;
-
+		
 		return ioctlsocket(s, FIONBIO, &nb);
 	}
 

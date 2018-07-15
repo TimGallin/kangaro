@@ -24,7 +24,14 @@ namespace kangaro{
 		http_dlib_enter_point SelectFunctor(const std::string& request_path);
 
 	private:
+		/*
+		<DLL-resource-path,load-module>
+		*/
 		dll_res _dll_loaded;
+
+		/*
+		<request-path,reflected-function>
+		*/
 		funciton_res _functor_loaded;
 	};
 }

@@ -1,6 +1,6 @@
 #ifndef KANGARO_HTTPRECVER_H
 #define KANGARO_HTTPRECVER_H
-
+#pragma once
 #include "httpparams.h"
 
 namespace kangaro{

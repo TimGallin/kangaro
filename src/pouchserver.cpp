@@ -2,6 +2,8 @@
 #include "pouchserver.h"
 #include "httprecver.h"
 #include "httpconfig.h"
+
+
 namespace kangaro{
 	PouchSvr::PouchSvr(){
 	}
@@ -15,7 +17,7 @@ namespace kangaro{
 	 *	Init.
 	 */
 	bool PouchSvr::Init(){
-		kangaro_soc::soc_init();
+		kangaro_os::soc_init();
 
 		struct addrinfo hints;
 		struct addrinfo *result, *rp;
@@ -71,7 +73,7 @@ namespace kangaro{
 			return false;
 		}
 
-		kangaro_soc::soc_nonblocking(_listen_sd);
+		kangaro_os::soc_nonblocking(_listen_sd);
 
 		return true;
 
@@ -158,6 +160,7 @@ namespace kangaro{
 						/* connection.                                */
 						/**********************************************/
 						Accept(master_set.fd_array[i]);
+						FD_CLR(master_set.fd_array[i], &master_set);
 					}
 				}
 
@@ -183,13 +186,19 @@ namespace kangaro{
 			return;
 		}
 
-		HTTPMessage httpmsg;
+		HTTPMessage httpmsg_request;
+
 
 		HttpRecver recver;
-		if (recver.Process(s, httpmsg) != KANGA_OK){
+		if (recver.Process(s, httpmsg_request) != KANGA_OK){
 			return;
 		}
 
+		HTTPMessage httpmsg_respond;
+		http_dlib_enter_point ep = _dispatcher.SelectFunctor(httpmsg_request.http_request_uri.abs_path);
+		if (ep != NULL) {
+			ep(&httpmsg_request, &httpmsg_respond);
+		}
 	}
 
 }

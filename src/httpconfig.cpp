@@ -4,7 +4,7 @@
 //TinyXml2
 #include "tinyxml2/tinyxml2.h"
 
-#define XML_ATTRIBUTE(element,name)  element->Attribute(name) == NULL? "":element->Attribute(name)
+#define XML_ATTRIBUTE(element,name)  (element->Attribute(name) == NULL) ? "":element->Attribute(name)
 
 namespace kangaro{
 	using namespace std;
@@ -56,24 +56,23 @@ namespace kangaro{
 		//Load-in all Request-config
 		tinyxml2::XMLElement* http_request = NULL;
 		http_request = http_element->FirstChildElement("request");
-		if (http_element == NULL){
+		if (http_request == NULL){
 			return KANGA_ERROR;
 		}
 
 		request_conf* _last_request = _first_request;
-		while (http_element != NULL){
+		while (http_request != NULL){
 			request_conf* link_request = new request_conf;
-			memset(link_request, 0, sizeof(request_conf));
 
 			link_request->type = 0;
-			link_request->path = XML_ATTRIBUTE(http_element, "path");
-			link_request->enter_point = XML_ATTRIBUTE(http_element, "enterpoint");
-			link_request->lib_path = XML_ATTRIBUTE(http_element, "libpath");
+			link_request->path = XML_ATTRIBUTE(http_request, "path");
+			link_request->enter_point = XML_ATTRIBUTE(http_request, "enterpoint");
+			link_request->lib_path = XML_ATTRIBUTE(http_request, "libpath");
 
 			_last_request->next = link_request;
 			_last_request = link_request;
 
-			http_request = http_element->NextSiblingElement("request");
+			http_request = http_request->NextSiblingElement("request");
 		}
 
 		return 0;
@@ -94,6 +93,8 @@ namespace kangaro{
 			if (name == node->path){
 				return node;
 			}
+
+			node = node->next;
 		}
 
 		return NULL;

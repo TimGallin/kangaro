@@ -122,7 +122,7 @@ namespace kangaro{
 				}
 				break;
 			case version_slash_start:
-				if (c == CR || c == LF){
+				if (c == KCR || c == LF){
 					break;
 				}
 				request.version.push_back(c);

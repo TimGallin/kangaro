@@ -2,11 +2,11 @@
 #define KANGARO_MAIN_H
 
 
-#include <stdio.h>
-#include <iostream>
-#include <string>
-#include <errno.h>
-#include <thread>
+//#include <stdio.h>
+//#include <iostream>
+//#include <string>
+//#include <errno.h>
+//#include <thread>
 
 
 
@@ -21,7 +21,7 @@
 
 #endif
 
-#define GLOG_NO_ABBREVIATED_SEVERITIES
+
 #include <glog\logging.h>
 
 /*Implicit*/
@@ -31,7 +31,7 @@
 
 
 #define LF     '\n'
-#define CR     '\r'
+#define KCR     '\r'
 #define CRLF     "\r\n"
 #define SP     ' '
 
