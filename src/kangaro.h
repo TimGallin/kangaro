@@ -1,6 +1,10 @@
 #ifndef KANGARO_MAIN_H
 #define KANGARO_MAIN_H
+<<<<<<< HEAD
 #pragma once
+=======
+
+>>>>>>> 0254edb527ae9a09ea001894e1acb5057d587d00
 
 #include "httpcode.h"
 
