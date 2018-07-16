@@ -9,7 +9,10 @@ int main(int argc, char* argv[]){
 
 
 	kangaro::HttpServerConfig config;
-	config.Load("E:\\code\\kangaro\\config\\httoconf.test.xml");
+	if (config.Load("E:\\timgallin\\projects\\kangaro\\config\\httoconf.test.xml") != KANGA_OK){
+		return 0;
+	}
+
 	kangaro::PouchSvr tm;
 	tm.Init();
 	tm.RunSvr();

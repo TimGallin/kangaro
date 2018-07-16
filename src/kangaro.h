@@ -2,15 +2,6 @@
 #define KANGARO_MAIN_H
 
 
-//#include <stdio.h>
-//#include <iostream>
-//#include <string>
-//#include <errno.h>
-//#include <thread>
-
-
-
-
 #include "httpcode.h"
 
 /*Platform*/
