@@ -6,7 +6,9 @@ using namespace std;
 namespace kangaro{
 	HttpRecver::HttpRecver() :
 		_head_buf(NULL),
-		_request_buf(NULL){
+		_request_buf(NULL),
+		_bChunked(true),
+		_content_length(0){
 	}
 
 	HttpRecver::~HttpRecver(){
@@ -14,6 +16,8 @@ namespace kangaro{
 
 	void HttpRecver::InitBuffer(){
 		_head_buf = new kangaro_request_buffer;
+		memset(_head_buf, 0, sizeof(kangaro_request_buffer));
+
 		_head_buf->buffer = static_cast<unsigned char*>(malloc(Max_Client_HeaderSize));
 		memset(_head_buf->buffer, 0, Max_Client_HeaderSize * sizeof(unsigned char));
 		_head_buf->buffer_size = Max_Client_HeaderSize;
@@ -37,16 +41,18 @@ namespace kangaro{
 
 		InitBuffer();
 
+		memset(&httpParam, 0, sizeof(HTTPMessage));
+
 		if (ProcessRequestLine(s, httpParam.http_request_uri) != KANGA_OK){
 			return KANGA_ERROR;
 		}
 
-		if (ProcessHeaders(s, httpParam.http_headers) != KANGA_OK){
+		if (ProcessHeaders(s, httpParam) != KANGA_OK){
 			return KANGA_ERROR;
 		}
 
-		if (httpParam.http_headers.find("Content-Length") != httpParam.http_headers.end()){
-			if (ProcessBody(s, atol(httpParam.http_headers["Content-Length"].c_str()), httpParam.http_body) != KANGA_OK){
+		if (!_bChunked){
+			if (ProcessBody(s, _content_length, httpParam.http_body) != KANGA_OK){
 				return KANGA_ERROR;
 			}
 		}
@@ -76,14 +82,16 @@ namespace kangaro{
 		}
 
 
-		if (!RequestURIParse(std::string(_request_buf->buffer, _request_buf->buffer + _request_buf->last_read), http_request)){
+		if (!RequestURIParse((char*)_request_buf->buffer, (char*)_request_buf->buffer + _request_buf->last_read, http_request)){
 			return KANGA_ERROR;
 		}
 
 		return KANGA_OK;
 	}
 
-	int HttpRecver::ProcessHeaders(const socklen_t s, kanga_headers& http_headers){
+	int HttpRecver::ProcessHeaders(const socklen_t s, HTTPMessage& httpParam){
+		kanga_headers* last = NULL;
+		httpParam.http_headers = NULL;
 		std::string key = "", value = "";
 		size_t line_start = _request_buf->last_read, line_end = 0;
 		char* p = (char*)_request_buf->buffer;
@@ -95,16 +103,30 @@ namespace kangaro{
 					line_end = _request_buf->last_read;
 
 					if (line_start == line_end - 1){
-						//CRLF CRLF means HTTP headers over
+						//CRLF CRLF means HTTP headers end
 						++_request_buf->last_read;
 						break;
 					}
 
 					//Parse header without CRLF
-					if (HeaderParse(std::string(p + line_start, p + line_end - 1), key, value)){
-						http_headers.insert(std::make_pair(std::move(key), std::move(value)));
+					if (last == NULL){
+						httpParam.http_headers = new kanga_headers;
+						memset(httpParam.http_headers, 0, sizeof(kanga_headers));
+						last = httpParam.http_headers;
 					}
 					
+
+					last->header = p + line_start;
+					*(p + line_end - 1) = 0;
+					ValidateChunked(last->header);
+
+					//Reverse-Order.
+					kanga_headers* next_header = new kanga_headers;
+					memset(next_header, 0, sizeof(kanga_headers));
+
+					last->next = next_header;
+					last = next_header;
+			
 					line_start = line_end + 1;
 					line_end = 0;
 				}
@@ -116,16 +138,18 @@ namespace kangaro{
 
 	int HttpRecver::ProcessBody(const socklen_t s, const int len, kanga_body& http_body){
 		size_t body_read = 0;
-		http_body.reserve(len);
+		http_body.len = len;
+		http_body.httpbd = (char*)_request_buf->buffer + _request_buf->last_read;
 		while (_request_buf)
 		{
 			int part_start = _request_buf->last_read;
-			for (_request_buf->last_read; _request_buf->last_read != _request_buf->valid_len; ++_request_buf->last_read){
-				
-				++body_read;
-			}
+			//for (_request_buf->last_read; _request_buf->last_read != _request_buf->valid_len; ++_request_buf->last_read){
+			//	
+			//	++body_read;
+			//}
+			body_read += _request_buf->valid_len - _request_buf->last_read;
 
-			http_body.append((char*)(_request_buf->buffer + part_start), (char*)(_request_buf->buffer + _request_buf->last_read));
+			//http_body.append((char*)(_request_buf->buffer + part_start), (char*)(_request_buf->buffer + _request_buf->last_read));
 
 			if (body_read == len){
 				break;
@@ -177,5 +201,12 @@ namespace kangaro{
 		} 
 	}
 
+	void HttpRecver::ValidateChunked(const char* header){
+		if (strstr(header, "Content-Length") != NULL){
+			_bChunked = false;
 
+			const char* colon = strchr(header, ':');
+			_content_length = atoi(colon + 1);
+		}
+	}
 }

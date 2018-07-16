@@ -5,21 +5,13 @@
 #include "httpparams.h"
 
 namespace kangaro {
-	class HttpSender {
-	public:
-		HttpSender();
-		~HttpSender();
-
+	namespace httpsender{
 		/*
 		* Description:
 		* 		Send Respond
 		*/
-		int Process(const socklen_t s, HTTPMessage& httpRespond);
-
-	private:
-
-
-	};
+		int Respond(const socklen_t s, const char* status, HTTPMessage& httpRespond);
+	}
 
 }
 

@@ -1,7 +1,5 @@
 #include "win.h"
 
-
-
 namespace kangaro_os {
 	int soc_init(){
 		WSADATA wsaData;
@@ -25,6 +23,11 @@ namespace kangaro_os {
 		unsigned long  nb = 0;
 		
 		return ioctlsocket(s, FIONBIO, &nb);
+	}
+
+	void soc_close(kangaro_socket_t s){
+		shutdown(s, SD_SEND);
+		closesocket(s);
 	}
 
 	kangaro_module load_lib(const char* lib){

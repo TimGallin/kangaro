@@ -25,6 +25,8 @@ namespace kangaro_os{
 
 	int soc_blocking(kangaro_socket_t s);
 
+	void soc_close(kangaro_socket_t s);
+
 	kangaro_module load_lib(const char* lib);
 
 	void free_lib(kangaro_module h);

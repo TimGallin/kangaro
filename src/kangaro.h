@@ -1,15 +1,6 @@
 #ifndef KANGARO_MAIN_H
 #define KANGARO_MAIN_H
-
-
-//#include <stdio.h>
-//#include <iostream>
-//#include <string>
-//#include <errno.h>
-//#include <thread>
-
-
-
+#pragma once
 
 #include "httpcode.h"
 
@@ -29,6 +20,7 @@
 
 #define Max_Client_HeaderSize 1024
 
+#define KANGARO_SVRNAME_DLF "kangaro"
 
 #define LF     '\n'
 #define KCR     '\r'

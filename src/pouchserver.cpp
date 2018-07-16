@@ -2,10 +2,14 @@
 #include "pouchserver.h"
 #include "httprecver.h"
 #include "httpconfig.h"
-
+#include "httputil.h"
 
 namespace kangaro{
 	PouchSvr::PouchSvr(){
+		memset(&_handle, 0, sizeof(SvrHandle));
+		_handle._handle_log = kangaro_log;
+		_handle._handle_respond = kangaro_respond;
+
 	}
 
 	PouchSvr::~PouchSvr(){
@@ -197,8 +201,26 @@ namespace kangaro{
 		HTTPMessage httpmsg_respond;
 		http_dlib_enter_point ep = _dispatcher.SelectFunctor(httpmsg_request.http_request_uri.abs_path);
 		if (ep != NULL) {
-			ep(&httpmsg_request, &httpmsg_respond);
+			//dll inner function will call _handle.handle_respond to execute send back.
+			ep(httpmsg_request, httpmsg_respond, _handle);
 		}
+
+		//Release http_headers
+		while (httpmsg_request.http_headers != NULL)
+		{
+			kanga_headers* next = httpmsg_request.http_headers->next;
+
+			delete httpmsg_request.http_headers;
+			httpmsg_request.http_headers = next;
+		}
+
+		//Do not delete http_headers of httpmsg_respond,because its space is distributed in dll.
+
+		//~HttpRecver will release the buffer of receiver.
+
+
+		//Close socket
+		kangaro_os::soc_close(s);
 	}
 
 }

@@ -10,7 +10,7 @@
 
 namespace kangaro{
 	//Dynamic lib Enter-Point Function Type.
-	typedef int(*http_dlib_enter_point) (void*, void*);
+	typedef int(*http_dlib_enter_point) (HTTPMessage& _in, HTTPMessage& _out, SvrHandle& _handle);
 
 
 	class HttpDispatcher{

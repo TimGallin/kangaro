@@ -75,7 +75,7 @@ namespace kangaro{
 			http_request = http_request->NextSiblingElement("request");
 		}
 
-		return 0;
+		return KANGA_OK;
 	}
 
 	std::string HttpServerConfig::GetHTTPPort() const{

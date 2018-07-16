@@ -6,6 +6,22 @@
 namespace kangaro{
 	class HttpRecver{
 	public:
+		/*
+		--------------------------------------
+		Request Buffer.
+		--------------------------------------
+		*/
+		typedef struct _kangaro_request_buffer_{
+			unsigned char* buffer;
+			size_t buffer_size;
+			size_t valid_len;
+			size_t last_read;
+
+			_kangaro_request_buffer_* last; //last buffer
+			_kangaro_request_buffer_* next; //next buffer
+		}kangaro_request_buffer;
+
+
 		HttpRecver();
 		~HttpRecver();
 
@@ -27,7 +43,7 @@ namespace kangaro{
 		 * Description:
 		 * 		Process Headers.
 		 */
-		int ProcessHeaders(const socklen_t s, kanga_headers& http_headers);
+		int ProcessHeaders(const socklen_t s, HTTPMessage& httpParam);
 
 		/*
 		Description:
@@ -36,6 +52,8 @@ namespace kangaro{
 		@param len : Content-Length
 		*/
 		int ProcessBody(const socklen_t s, const int len, kanga_body& http_body);
+
+		void ValidateChunked(const char* header);
 
 		void InitBuffer();
 
@@ -47,6 +65,9 @@ namespace kangaro{
 
 		kangaro_request_buffer* _head_buf;
 		kangaro_request_buffer* _request_buf;
+
+		bool _bChunked;
+		size_t _content_length;
 	};
 
 }

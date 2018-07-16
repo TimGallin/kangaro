@@ -84,8 +84,8 @@ namespace kangaro{
 	Parse HTTP Request-Uri
 	Request-URI = "*" | absoluteURI | abs_path | authority
 	*/
-	bool RequestURIParse(const std::string& spec, request_uri& request){
-		request.spec = spec;
+	bool RequestURIParse(char* spec_start, char* spec_end, request_uri& request){
+		request.option = spec_start;
 
 		enum{
 			option_start = 0,
@@ -94,38 +94,42 @@ namespace kangaro{
 			version_slash_start
 		}state = option_start;
 
-		for each (const char& c in spec)
+		char* p = spec_start;
+		for (p; p != spec_end; ++p)
 		{
 			switch (state)
 			{
 			case option_start:
-				if (c == ' '){
+				if (*p == ' '){
+					*p = 0;
+					request.abs_path = p + 1;
 					state = path_space_start;
 					break;
 				}
-				request.option.push_back(c);
 				break;
 
 			case path_space_start:
-				if (c == ' '){
+				if (*p == ' '){
+					*p = 0;
+
 					state = httpversion_space_start;
 					break;
 				}
 
-				request.abs_path.push_back(c);
 				break;
 
 			case httpversion_space_start:
-				if (c == '/'){
+				if (*p == '/'){
+					request.version = p + 1;
 					state = version_slash_start;
 					break;
 				}
 				break;
 			case version_slash_start:
-				if (c == KCR || c == LF){
+				if (*p == KCR || *p == LF){
+					*p = 0;
 					break;
 				}
-				request.version.push_back(c);
 				break;
 
 			default:

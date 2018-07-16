@@ -1,6 +1,7 @@
 #ifndef KANGARO_POUCHSERVER_H
 #define  KANGARO_POUCHSERVER_H
 #include "httpdispatcher.h"
+#include "httpparams.h"
 namespace kangaro{
 	class PouchSvr{
 	public:
@@ -37,6 +38,8 @@ namespace kangaro{
 		kangaro_socket_t _listen_sd;
 
 		HttpDispatcher _dispatcher;
+
+		SvrHandle _handle;
 	};
 
 }
