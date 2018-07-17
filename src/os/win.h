@@ -21,6 +21,8 @@ typedef HMODULE  kangaro_module;
 namespace kangaro_os{
 	int soc_init();
 
+	int soc_reuseaddr(kangaro_socket_t s);
+
 	int soc_nonblocking(kangaro_socket_t s);
 
 	int soc_blocking(kangaro_socket_t s);

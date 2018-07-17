@@ -1,10 +1,7 @@
 #ifndef KANGARO_MAIN_H
 #define KANGARO_MAIN_H
-<<<<<<< HEAD
-#pragma once
-=======
 
->>>>>>> 0254edb527ae9a09ea001894e1acb5057d587d00
+#pragma once
 
 #include "httpcode.h"
 
@@ -20,9 +17,9 @@
 #include <glog\logging.h>
 
 /*Implicit*/
-#define KANGARO_BACKLOG 50
+#define KANGARO_BACKLOG 10
 
-#define Max_Client_HeaderSize 1024
+#define Max_Client_HeaderSize 2048
 
 #define KANGARO_SVRNAME_DLF "kangaro"
 

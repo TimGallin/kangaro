@@ -31,9 +31,14 @@ namespace kangaro{
 		}
 	}
 
-	int kangaro_respond(HTTPMessage& _out){
+	int kangaro_respond(void* s,  HTTPMessage* _out){
+		if (s == NULL){
+			LOG(ERROR) << "Invalid socket.";
+			return KANGA_ERROR;
+		}
+		kangaro_socket_t* sock = (kangaro_socket_t*)s;
 
-		return 0;
+		return httpsender::Respond(*sock, HTTP_STATUS_OK, _out);
 	}
 }
 

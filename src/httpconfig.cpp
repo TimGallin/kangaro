@@ -14,13 +14,13 @@ namespace kangaro{
 	}
 
 	HttpServerConfig::HttpServerConfig():
-		_http_port("50203"),
+		_http_port(""),
 		_first_request(NULL),
-		_back_log(10){
+		_back_log(0),
+		_default_content_type(),
+		_CROS_permission(false){
 		config = this;
 
-		_first_request = new request_conf;
-		memset(_first_request, 0, sizeof(request_conf));
 	}
 
 	HttpServerConfig::~HttpServerConfig(){
@@ -41,17 +41,11 @@ namespace kangaro{
 		tinyxml2::XMLElement* http_element = NULL;
 		http_element = doc.FirstChildElement("config")->FirstChildElement("http")->ToElement();
 		
-		//Select port to listen.
-		const char* port = http_element->Attribute("port");
-		if (port){
-			_http_port = port;
-		}
 
-		//Get Back-Log
-		const char* blog = http_element->Attribute("backlog");
-		if (blog){
-			_back_log = atoi(port);
-		}
+		_http_port = XML_ATTRIBUTE(http_element,"port");
+		_back_log = atoi(XML_ATTRIBUTE(http_element, "backlog"));
+		_default_content_type = XML_ATTRIBUTE(http_element, "dlf_content_type");
+		_CROS_permission = strcmp(XML_ATTRIBUTE(http_element, "cros"), "true") ? true : false;
 
 		//Load-in all Request-config
 		tinyxml2::XMLElement* http_request = NULL;
@@ -62,15 +56,18 @@ namespace kangaro{
 
 		request_conf* _last_request = _first_request;
 		while (http_request != NULL){
-			request_conf* link_request = new request_conf;
+			_last_request = new request_conf;
 
-			link_request->type = 0;
-			link_request->path = XML_ATTRIBUTE(http_request, "path");
-			link_request->enter_point = XML_ATTRIBUTE(http_request, "enterpoint");
-			link_request->lib_path = XML_ATTRIBUTE(http_request, "libpath");
+			_last_request->type = 0;
+			_last_request->path = XML_ATTRIBUTE(http_request, "path");
+			_last_request->enter_point = XML_ATTRIBUTE(http_request, "enterpoint");
+			_last_request->lib_path = XML_ATTRIBUTE(http_request, "libpath");
 
-			_last_request->next = link_request;
-			_last_request = link_request;
+			if (_first_request == NULL){
+				_first_request = _last_request;
+			}
+
+			_last_request = _last_request->next;
 
 			http_request = http_request->NextSiblingElement("request");
 		}
@@ -78,14 +75,18 @@ namespace kangaro{
 		return KANGA_OK;
 	}
 
-	std::string HttpServerConfig::GetHTTPPort() const{
-		return _http_port;
+	const char* HttpServerConfig::GetHTTPPort(){
+		return _http_port.c_str();
 	}
 
-	/*
-	Description:
-	Select a request-config via path.
-	*/
+	const char* HttpServerConfig::GetDefaultContenttype(){
+		return _default_content_type.c_str();
+	}
+
+	bool HttpServerConfig::IsCROSSupport() const{
+		return _CROS_permission;
+	}
+
 	request_conf* HttpServerConfig::SelectRequestConfig(const std::string& name){
 		request_conf* node = _first_request;
 
@@ -109,5 +110,21 @@ namespace kangaro{
 		}
 		prinsoner = NULL;
 		_first_request = NULL;
+	}
+
+	void HttpServerConfig::LoadDefaultConfig(){
+		if (_http_port.empty()){
+			_http_port = "50203";
+		}
+
+		if (_default_content_type.empty()){
+			_http_port = "application/x-www-form-urlencoded";
+		}
+
+		if (_back_log == 0){
+			_back_log = 10;
+		}
+
+		
 	}
 }

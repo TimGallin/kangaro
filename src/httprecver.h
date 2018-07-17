@@ -32,6 +32,10 @@ namespace kangaro{
 		int Process(const socklen_t s, HTTPMessage& httpParam);
 
 	private:
+		/*
+		Recv
+		*/
+		int RecvAsyn(const socklen_t s, char* buffer, size_t size, int flags);
 
 		/*
 		 * Description:
@@ -57,7 +61,7 @@ namespace kangaro{
 
 		void InitBuffer();
 
-		void ExpandBuffer(kangaro_request_buffer* buf);
+		kangaro_request_buffer* ExpandBuffer(kangaro_request_buffer* buf, size_t space = Max_Client_HeaderSize);
 
 		void FreeBuffer(kangaro_request_buffer* buf);
 

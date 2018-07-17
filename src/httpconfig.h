@@ -24,6 +24,14 @@ namespace kangaro{
 
 		//Next config
 		_request_conf_* next;
+
+		_request_conf_(){
+			type = 0;
+			lib_path = "";
+			path = "";
+			enter_point = "";
+			next = NULL;
+		}
 	}request_conf;
 
 
@@ -40,7 +48,11 @@ namespace kangaro{
 		 */
 		int Load(const char* pConfigFile);
 
-		std::string GetHTTPPort() const;
+		const char* GetHTTPPort();
+
+		const char* GetDefaultContenttype();
+
+		bool IsCROSSupport() const;
 
 		/*
 		Description:
@@ -49,11 +61,24 @@ namespace kangaro{
 		request_conf* SelectRequestConfig(const std::string& name);
 	private:
 		/*
+		Load default config after read xml.
+		*/
+		void LoadDefaultConfig();
+
+		/*
 		Free all config struct.
 		*/
 		void FreeAllConfig();
 
+
+		//Listen port
 		std::string _http_port;
+
+		//Server use this content-type to respond if user do not set content-type.
+		std::string _default_content_type;
+
+		//If the server support CROS access.
+		bool _CROS_permission;
 
 		int _back_log;
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
-<http port="50203" backlog="10">
-	<request type="dlib" path="/test" enterpoint="request_test" libpath="E:/code/kangaro_test/Debug/kangaro_test.dll"></request>
+<http port="50203" backlog="10" cros="true">
+	<request type="dlib" path="/recvinv" enterpoint="recv_inputvat" libpath="E:/PwyRepo/RInvComponent/Src/InputVAT/Debug/InputVAT.dll"></request>
 </http>
 </config>

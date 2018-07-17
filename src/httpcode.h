@@ -5,7 +5,10 @@
 #define KANGA_ERROR 1
 #define KANGA_AGAIN 2
 
+#define HTTP_VERSION "HTTP/1.1"
+#define HTTP_SERVER "kangaro_1.0"
 
+//Status Code
 #define HTTP_STATUS_OK "200"
 #define HTTP_STATUS_NOT_IMPLEMENT "501"
 #define HTTP_STATUS_INTERNEL_ERROR "500"

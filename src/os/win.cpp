@@ -5,12 +5,17 @@ namespace kangaro_os {
 		WSADATA wsaData;
 		
 		//initialze Winsock,The WSAStartup function is called to initiate use of WS2_32.dll.
-		int iRet = WSAStartup(MAKEWORD(2, 2), &wsaData);
-		if (iRet != 0){
+		int r = WSAStartup(MAKEWORD(2, 2), &wsaData);
+		if (r != 0){
 			return WSAGetLastError();
 		}
 
 		return KANGA_OK;
+	}
+
+	int soc_reuseaddr(kangaro_socket_t s){
+		int on = 1;
+		return setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on));
 	}
 
 	int soc_nonblocking(kangaro_socket_t s){

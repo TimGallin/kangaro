@@ -4,13 +4,15 @@
 #pragma once
 #include "kangaro.h"
 #include "httpconfig.h"
+#include "httpparams.h"
+
 #include <string>
 #include <map>
 #include <vector>
 
 namespace kangaro{
 	//Dynamic lib Enter-Point Function Type.
-	typedef int(*http_dlib_enter_point) (HTTPMessage& _in, HTTPMessage& _out, SvrHandle& _handle);
+	typedef int(*http_dlib_enter_point) (HTTPMessage* _in, HTTPMessage* _out, SvrHandle* _handle);
 
 
 	class HttpDispatcher{
@@ -21,9 +23,14 @@ namespace kangaro{
 		HttpDispatcher();
 		~HttpDispatcher();
 
-		http_dlib_enter_point SelectFunctor(const std::string& request_path);
+		http_dlib_enter_point SelectFunctor(request_conf* request);
 
 	private:
+		/*
+		FREE LIB
+		*/
+		void ReleaseResources();
+
 		/*
 		<DLL-resource-path,load-module>
 		*/

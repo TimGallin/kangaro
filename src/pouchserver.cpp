@@ -3,6 +3,7 @@
 #include "httprecver.h"
 #include "httpconfig.h"
 #include "httputil.h"
+#include "httpsender.h"
 
 namespace kangaro{
 	PouchSvr::PouchSvr(){
@@ -33,7 +34,7 @@ namespace kangaro{
 		hints.ai_flags = AI_PASSIVE;
 		hints.ai_protocol = IPPROTO_TCP;
 
-		int s = getaddrinfo(NULL, HttpServerConfig::GetInstance()->GetHTTPPort().c_str(), &hints, &result);
+		int s = getaddrinfo(NULL, HttpServerConfig::GetInstance()->GetHTTPPort(), &hints, &result);
 		if (s != 0){
 			LOG(ERROR) << "getaddrinfo failed.wsa error:" << kangaro_socket_errno;
 			return false;
@@ -65,6 +66,7 @@ namespace kangaro{
 		if (rp == NULL){
 			/*No address succeeded.*/
 			LOG(ERROR) << "Could not bind.wsa error:" << kangaro_socket_errno;
+			kangaro_socket_close(_listen_sd);
 			return false;
 		}
 
@@ -72,12 +74,22 @@ namespace kangaro{
 
 		/*Listen*/
 		if (listen(_listen_sd, KANGARO_BACKLOG) != 0){
-			LOG(ERROR) << "Listen failed.wsa error:" << kangaro_socket_errno;
+			LOG(ERROR) << "listen() failed.wsa error:" << kangaro_socket_errno;
 			kangaro_socket_close(_listen_sd);
 			return false;
 		}
 
-		kangaro_os::soc_nonblocking(_listen_sd);
+		if (kangaro_os::soc_reuseaddr(_listen_sd)){
+			LOG(ERROR) << "soc_reuseaddr() failed.wsa error:" << kangaro_socket_errno;
+			kangaro_socket_close(_listen_sd);
+			return false;
+		}
+
+		if (kangaro_os::soc_nonblocking(_listen_sd) != 0){
+			LOG(WARNING) << "ioctlsocket failed. " << kangaro_socket_errno;
+			kangaro_socket_close(_listen_sd);
+			return false;
+		}
 
 		return true;
 
@@ -172,10 +184,16 @@ namespace kangaro{
 					break;
 				}
 			}
-
 		}
 
-
+		/*************************************************************/
+		/* Clean up all of the sockets that are open                 */
+		/*************************************************************/
+		for (i = 0; i <= (int)master_set.fd_count; ++i)
+		{
+			if (FD_ISSET(i, &master_set))
+				kangaro_os::soc_close(master_set.fd_array[i]);
+		}
 	}
 
 
@@ -191,7 +209,7 @@ namespace kangaro{
 		}
 
 		HTTPMessage httpmsg_request;
-
+		memset(&httpmsg_request, 0, sizeof(HTTPMessage));
 
 		HttpRecver recver;
 		if (recver.Process(s, httpmsg_request) != KANGA_OK){
@@ -199,11 +217,27 @@ namespace kangaro{
 		}
 
 		HTTPMessage httpmsg_respond;
-		http_dlib_enter_point ep = _dispatcher.SelectFunctor(httpmsg_request.http_request_uri.abs_path);
-		if (ep != NULL) {
-			//dll inner function will call _handle.handle_respond to execute send back.
-			ep(httpmsg_request, httpmsg_respond, _handle);
+		memset(&httpmsg_respond, 0, sizeof(HTTPMessage));
+
+		request_conf* request = HttpServerConfig::GetInstance()->SelectRequestConfig(httpmsg_request.http_request_uri.abs_path);
+		if (request != NULL){
+			http_dlib_enter_point ep = _dispatcher.SelectFunctor(request);
+			if (ep != NULL) {
+				_handle.respond_param = &s;
+				//dll inner function will call _handle.handle_respond to execute send back.
+				ep(&httpmsg_request, &httpmsg_respond, &_handle);
+			}
+			else
+			{
+				httpsender::Respond(s, HTTP_STATUS_NOT_IMPLEMENT, NULL);
+			}
 		}
+		else
+		{
+			httpsender::Respond(s, HTTP_STATUS_NOT_FOUND, NULL);
+		}
+
+		
 
 		//Release http_headers
 		while (httpmsg_request.http_headers != NULL)

@@ -6,7 +6,7 @@
 namespace kangaro{
 	void kangaro_log(LOG_LEV level, const char* log);
 
-	int kangaro_respond(HTTPMessage& _out);
+	int kangaro_respond(void* s, HTTPMessage* _out);
 }
 
 

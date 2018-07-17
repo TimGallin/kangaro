@@ -41,8 +41,6 @@ namespace kangaro{
 
 		InitBuffer();
 
-		memset(&httpParam, 0, sizeof(HTTPMessage));
-
 		if (ProcessRequestLine(s, httpParam.http_request_uri) != KANGA_OK){
 			return KANGA_ERROR;
 		}
@@ -66,7 +64,12 @@ namespace kangaro{
 	 * 		Process request line,parse request-line.
 	 */
 	int HttpRecver::ProcessRequestLine(const socklen_t s, request_uri &http_request){
-		int r = recv(s + 1, (char*)_request_buf->buffer, _request_buf->buffer_size, 0);
+
+		int r = RecvAsyn(s, (char*)_request_buf->buffer, _request_buf->buffer_size, 0);
+		if (r < 0){
+			return KANGA_ERROR;
+		}
+
 		_request_buf->valid_len = r;
 
 		char* p = (char*)_request_buf->buffer;
@@ -83,8 +86,11 @@ namespace kangaro{
 
 
 		if (!RequestURIParse((char*)_request_buf->buffer, (char*)_request_buf->buffer + _request_buf->last_read, http_request)){
+			LOG(ERROR) << "parse request-uri failed.";
 			return KANGA_ERROR;
 		}
+		//Log request uri.
+		LOG(INFO) << _request_buf->buffer;
 
 		return KANGA_OK;
 	}
@@ -120,6 +126,8 @@ namespace kangaro{
 					*(p + line_end - 1) = 0;
 					ValidateChunked(last->header);
 
+					LOG(INFO) << last->header;
+
 					//Reverse-Order.
 					kanga_headers* next_header = new kanga_headers;
 					memset(next_header, 0, sizeof(kanga_headers));
@@ -140,44 +148,73 @@ namespace kangaro{
 		size_t body_read = 0;
 		http_body.len = len;
 		http_body.httpbd = (char*)_request_buf->buffer + _request_buf->last_read;
+
 		while (_request_buf)
 		{
-			int part_start = _request_buf->last_read;
-			//for (_request_buf->last_read; _request_buf->last_read != _request_buf->valid_len; ++_request_buf->last_read){
-			//	
-			//	++body_read;
-			//}
+			//int part_start = _request_buf->last_read;
 			body_read += _request_buf->valid_len - _request_buf->last_read;
-
-			//http_body.append((char*)(_request_buf->buffer + part_start), (char*)(_request_buf->buffer + _request_buf->last_read));
+			_request_buf->last_read = _request_buf->valid_len;
 
 			if (body_read == len){
+				//The buffer contains all the content.
 				break;
 			}
 
-			
-			ExpandBuffer(_request_buf);
-			_request_buf = _request_buf->next;
-			
-			int r = recv(s + 1, (char*)_request_buf->buffer, len - body_read, 0);
+			size_t remainder_space = _request_buf->buffer_size - _request_buf->valid_len;//Remainder space of request buffer.
+
+			if (remainder_space < len - body_read){
+				/*
+				The space required for content is far greater than this buffer.
+				Create a new buffer in body size.Move the valid part of body to new buffer.Set body pointer to the start of new one.
+				*/
+				
+				kangaro_request_buffer* body_buffer = ExpandBuffer(_request_buf, len + 1);
+				memmove(body_buffer->buffer, http_body.httpbd, body_read);
+				memset(http_body.httpbd, 0, body_read*sizeof(unsigned char));
+
+				body_buffer->valid_len = body_read;
+				http_body.httpbd = (char*)body_buffer->buffer;
+				body_buffer->last_read = body_read;
+				_request_buf = body_buffer;
+
+			}
+			else
+			{
+				//Remainder space is enough.Just read the remaining part of content body.
+				int r = RecvAsyn(s, (char*)_request_buf->buffer + _request_buf->last_read, remainder_space, 0);
+				if (r < 0){
+					return KANGA_ERROR;
+				}
+
+				body_read += r;
+			}
+	
+			if (body_read == len){
+				//The buffer contains all the content.
+				break;
+			}
 			
 		}
 
+		LOG(INFO)<<"HTTP Body:\r\n" << http_body.httpbd;
 
 		return KANGA_OK;
 	}
 
-	void HttpRecver::ExpandBuffer(kangaro_request_buffer* buf){
+	HttpRecver::kangaro_request_buffer* HttpRecver::ExpandBuffer(kangaro_request_buffer* buf, size_t space){
 		kangaro_request_buffer* next_buf = new kangaro_request_buffer;
-		next_buf->buffer = static_cast<unsigned char*>(malloc(Max_Client_HeaderSize));
-		memset(next_buf->buffer, 0, Max_Client_HeaderSize * sizeof(unsigned char));
-		next_buf->buffer_size = Max_Client_HeaderSize;
+		next_buf->buffer = static_cast<unsigned char*>(malloc(space));
+		memset(next_buf->buffer, 0, space * sizeof(unsigned char));
+		next_buf->buffer_size = space;
 		next_buf->last_read = 0;
 		next_buf->valid_len = 0;
 
 		next_buf->last = buf;
 		next_buf->next = NULL;
 
+		buf->next = next_buf;
+
+		return next_buf;
 	}
 
 	void HttpRecver::FreeBuffer(kangaro_request_buffer* buf){
@@ -208,5 +245,26 @@ namespace kangaro{
 			const char* colon = strchr(header, ':');
 			_content_length = atoi(colon + 1);
 		}
+	}
+
+	int HttpRecver::RecvAsyn(const socklen_t s, char* buffer, size_t size, int flags){
+		int r = 0;
+		while (1)
+		{
+			r = recv(s, buffer, size, flags);
+			if (r < 0){
+				if (kangaro_socket_errno != kangaro_ewouldblock){
+					LOG(ERROR) << "recv() error." << kangaro_socket_errno;
+					return -1;
+				}
+				continue;
+			}
+			else
+			{
+				break;
+			}
+		}
+		
+		return r;
 	}
 }

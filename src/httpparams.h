@@ -69,13 +69,30 @@ namespace kangaro{
 		KFATAL
 	};
 
-	typedef void(handle_log)(LOG_LEV, const char*);
+	typedef void(*handle_log)(LOG_LEV, const char*);
 
-	typedef int(handle_respond)(HTTPMessage&);
+	typedef int(*handle_respond)(void* use_respond_param, HTTPMessage* use_out);
 
 	typedef struct _SvrHandle_{
 		handle_log _handle_log;
+		void* respond_param;
 		handle_respond _handle_respond;
 	}SvrHandle;
+
+	/*
+	DLL Funtion
+	int (HTTPMessage* _in,HTTPMessage* _out,SvrHandle* _handle){
+		//Log
+		_handle->_handle_log(LOG_LEV::KINFO,"Hello World");
+
+		//Make Respond.(_out)
+
+		//Add headers. (Do not add /r/n)
+
+		//Call Respond
+		_handle->_handle_respond(_handle->respond_param,_out);
+
+		return 0;
+	*/
 }
 #endif
