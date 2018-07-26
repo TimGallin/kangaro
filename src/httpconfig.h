@@ -35,6 +35,14 @@ namespace kangaro{
 	}request_conf;
 
 
+	typedef struct _server_dll_init_{
+		//Dynamic lib path.
+		std::string lib_path;
+
+		//Next config
+		_server_dll_init_* next;
+	}server_dll_init;
+
 	class HttpServerConfig{
 	public:
 		HttpServerConfig();
@@ -59,6 +67,11 @@ namespace kangaro{
 		Select a request-config via path.
 		*/
 		request_conf* SelectRequestConfig(const std::string& name);
+
+		/*
+		Get the first server_dll_init
+		*/
+		server_dll_init* GetFirstInitDll();
 	private:
 		/*
 		Load default config after read xml.
@@ -83,6 +96,8 @@ namespace kangaro{
 		int _back_log;
 
 		request_conf* _first_request;
+
+		server_dll_init* _first_dll_init;
 	};
 
 }

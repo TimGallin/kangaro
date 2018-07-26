@@ -10,7 +10,7 @@ namespace kangaro {
 		* Description:
 		* 		Send Respond
 		*/
-		int Respond(const socklen_t s, const char* status, HTTPMessage* httpRespond);
+		int Respond(const socklen_t s, const char* status, HTTPRespond* httpRespond);
 	}
 
 }

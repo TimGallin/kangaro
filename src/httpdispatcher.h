@@ -11,35 +11,42 @@
 #include <vector>
 
 namespace kangaro{
-	//Dynamic lib Enter-Point Function Type.
-	typedef int(*http_dlib_enter_point) (HTTPMessage* _in, HTTPMessage* _out, SvrHandle* _handle);
-
 
 	class HttpDispatcher{
 	public:
-		typedef std::map<std::string, http_dlib_enter_point> funciton_res;
-		typedef std::map<std::string, kangaro_module> dll_res;
+		typedef struct _request_res_{
+			http_dlib_enter_point func_request;
+			http_dlib_release func_release;
+		}request_res;
 
 		HttpDispatcher();
 		~HttpDispatcher();
 
-		http_dlib_enter_point SelectFunctor(request_conf* request);
+		request_res SelectFunctor(request_conf* request);
 
+		/*
+		Add dll  to dll_res
+		*/
+		kangaro_module AddDllRes(const std::string& dllpath);
 	private:
 		/*
 		FREE LIB
 		*/
 		void ReleaseResources();
 
+		typedef std::map<std::string, http_dlib_enter_point> funciton_res;
+
+		typedef struct _dll_res{
+			kangaro_module hmod;
+			funciton_res func_request;
+			http_dlib_release func_release;
+		}dll_res;
+
 		/*
 		<DLL-resource-path,load-module>
 		*/
-		dll_res _dll_loaded;
+		std::map<std::string, dll_res> _dlls_loaded;
 
-		/*
-		<request-path,reflected-function>
-		*/
-		funciton_res _functor_loaded;
 	};
 }
 

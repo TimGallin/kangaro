@@ -23,6 +23,9 @@
 
 #define KANGARO_SVRNAME_DLF "kangaro"
 
+#define KANGARO_DLL_INTI_FUNCNAME "DllInitWhenLoadin"
+#define KANGARO_DLL_RELEASE_RES_FUNCNAME "DllReleaseRes"
+
 #define LF     '\n'
 #define KCR     '\r'
 #define CRLF     "\r\n"

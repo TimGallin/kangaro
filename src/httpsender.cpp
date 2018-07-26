@@ -18,7 +18,7 @@ namespace kangaro {
 		};
 		static std::map<std::string, std::string> http_status(pairArray, pairArray + sizeof(pairArray) / sizeof(pairArray[0]));
 
-		int Respond(const socklen_t s, const char* status, HTTPMessage* httpRespond){
+		int Respond(const socklen_t s, const char* status, HTTPRespond* httpRespond){
 			if (http_status.find(status) == http_status.end()){
 				LOG(ERROR) << "Invalid status code.";
 				return KANGA_ERROR;

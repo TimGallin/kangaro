@@ -7,10 +7,6 @@
 
 namespace kangaro{
 	PouchSvr::PouchSvr(){
-		memset(&_handle, 0, sizeof(SvrHandle));
-		_handle._handle_log = kangaro_log;
-		_handle._handle_respond = kangaro_respond;
-
 	}
 
 	PouchSvr::~PouchSvr(){
@@ -22,6 +18,9 @@ namespace kangaro{
 	 *	Init.
 	 */
 	bool PouchSvr::Init(){
+		//Init Dll before server set up
+		DllsInit();
+
 		kangaro_os::soc_init();
 
 		struct addrinfo hints;
@@ -95,6 +94,22 @@ namespace kangaro{
 
 	}
 
+	void PouchSvr::DllsInit(){
+		server_dll_init* initst = HttpServerConfig::GetInstance()->GetFirstInitDll();
+
+		while (initst != NULL)
+		{
+			HMODULE h = _dispatcher.AddDllRes(initst->lib_path);
+			if (h){
+				http_dlib_loadinit initfunc = (http_dlib_loadinit)kangaro_os::get_lib_funtion(h, KANGARO_DLL_INTI_FUNCNAME);
+				if (initfunc){
+					initfunc();
+				}
+			}
+
+			initst = initst->next;
+		}
+	}
 
 	/*
 	 * Description:
@@ -216,16 +231,18 @@ namespace kangaro{
 			return;
 		}
 
-		HTTPMessage httpmsg_respond;
+		HTTPRespond httpmsg_respond;
 		memset(&httpmsg_respond, 0, sizeof(HTTPMessage));
 
 		request_conf* request = HttpServerConfig::GetInstance()->SelectRequestConfig(httpmsg_request.http_request_uri.abs_path);
 		if (request != NULL){
-			http_dlib_enter_point ep = _dispatcher.SelectFunctor(request);
-			if (ep != NULL) {
-				_handle.respond_param = &s;
-				//dll inner function will call _handle.handle_respond to execute send back.
-				ep(&httpmsg_request, &httpmsg_respond, &_handle);
+			HttpDispatcher::request_res req = _dispatcher.SelectFunctor(request);
+			if (req.func_request != NULL) {
+				req.func_request(&httpmsg_request, &httpmsg_respond);
+				httpsender::Respond(s, HTTP_STATUS_OK, &httpmsg_respond);
+				if (httpmsg_respond.need_release == 1 && req.func_release != NULL){
+					req.func_release(&httpmsg_respond);
+				}
 			}
 			else
 			{

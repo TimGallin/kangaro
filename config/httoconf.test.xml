@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
 <http port="50203" backlog="10" cros="true">
+<Init>
+<Dllres>E:/PwyRepo/RInvComponent/Src/InputVAT/Debug/InputVAT.dll</Dllres>
+</Init>
 	<request type="dlib" path="/recvinv" enterpoint="recv_inputvat" libpath="E:/PwyRepo/RInvComponent/Src/InputVAT/Debug/InputVAT.dll"></request>
 </http>
 </config>

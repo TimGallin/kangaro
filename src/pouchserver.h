@@ -22,6 +22,11 @@ namespace kangaro{
 
 	private:
 		/*
+		Go through all the <Init> config. Call DllInitWhenLoadin() for every dll;
+		*/
+		void DllsInit();
+
+		/*
 		 *Description:
 		 *	Accept
 		 *
@@ -38,8 +43,6 @@ namespace kangaro{
 		kangaro_socket_t _listen_sd;
 
 		HttpDispatcher _dispatcher;
-
-		SvrHandle _handle;
 	};
 
 }

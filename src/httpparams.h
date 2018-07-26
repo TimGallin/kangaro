@@ -49,7 +49,7 @@ namespace kangaro{
 
 	/*
 	--------------------------------------
-	HTTP Message.
+	HTTP Message. (Request)
 	--------------------------------------
 	*/
 	typedef struct _HttpMsg_{
@@ -58,41 +58,48 @@ namespace kangaro{
 		kanga_body http_body;
 	}HTTPMessage;
 
+	/*
+	--------------------------------------
+	HTTP Message. (Respond)
+	--------------------------------------
+	*/
+	typedef struct _HttpRespond_{
+		kanga_headers* http_headers;
+		kanga_body http_body;
+		int need_release; // 0: false 1:true
+	}HTTPRespond;
+
 
 	/*
-	HTTP SERVER Handle.
+	Server£º
+		DLL Funtion
+		int (HTTPMessage* _in,HTTPRespond* _out){
+			//Log
+			_handle->_handle_log(LOG_LEV::KINFO,"Hello World");
+
+			//Make Respond.(_out)
+
+			//Add headers. (Do not add /r/n)
+
+			return 0;
+			}
+		
+		
+	
+		...
 	*/
-	enum LOG_LEV{
-		KINFO,
-		KWARNING,
-		KERROR,
-		KFATAL
-	};
 
-	typedef void(*handle_log)(LOG_LEV, const char*);
+	//---------------------------------------------
+	//Dynamic lib Function Type.
+	//---------------------------------------------
 
-	typedef int(*handle_respond)(void* use_respond_param, HTTPMessage* use_out);
+	//Handle
+	typedef int(*http_dlib_enter_point) (HTTPMessage* _in, HTTPRespond* _out);
 
-	typedef struct _SvrHandle_{
-		handle_log _handle_log;
-		void* respond_param;
-		handle_respond _handle_respond;
-	}SvrHandle;
+	//Respond release
+	typedef int(*http_dlib_release)(HTTPRespond* respond);
 
-	/*
-	DLL Funtion
-	int (HTTPMessage* _in,HTTPMessage* _out,SvrHandle* _handle){
-		//Log
-		_handle->_handle_log(LOG_LEV::KINFO,"Hello World");
-
-		//Make Respond.(_out)
-
-		//Add headers. (Do not add /r/n)
-
-		//Call Respond
-		_handle->_handle_respond(_handle->respond_param,_out);
-
-		return 0;
-	*/
+	//Load Init 
+	typedef int(*http_dlib_loadinit)();
 }
 #endif

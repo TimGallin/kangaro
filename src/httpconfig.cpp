@@ -16,6 +16,7 @@ namespace kangaro{
 	HttpServerConfig::HttpServerConfig():
 		_http_port(""),
 		_first_request(NULL),
+		_first_dll_init(NULL),
 		_back_log(0),
 		_default_content_type(),
 		_CROS_permission(false){
@@ -41,12 +42,37 @@ namespace kangaro{
 		tinyxml2::XMLElement* http_element = NULL;
 		http_element = doc.FirstChildElement("config")->FirstChildElement("http")->ToElement();
 		
-
+		//http attributes
 		_http_port = XML_ATTRIBUTE(http_element,"port");
 		_back_log = atoi(XML_ATTRIBUTE(http_element, "backlog"));
 		_default_content_type = XML_ATTRIBUTE(http_element, "dlf_content_type");
 		_CROS_permission = strcmp(XML_ATTRIBUTE(http_element, "cros"), "true") ? true : false;
 
+		//Dll init config
+		tinyxml2::XMLElement* http_dllinit = http_element->FirstChildElement("Init");
+		if (http_dllinit != NULL){
+			server_dll_init* _last_dllinit = _first_dll_init;
+
+			tinyxml2::XMLElement* http_dllinitres = http_dllinit->FirstChildElement("Dllres");
+
+			while (http_dllinitres != NULL)
+			{
+				_last_dllinit = new server_dll_init;
+				_last_dllinit->lib_path = "";
+				_last_dllinit->next = NULL;
+
+				_last_dllinit->lib_path = http_dllinitres->GetText();
+
+				if (_first_dll_init == NULL){
+					_first_dll_init = _last_dllinit;
+				}
+
+				_last_dllinit = _last_dllinit->next;
+
+				http_dllinitres = http_dllinitres->NextSiblingElement("Dllres");
+			}
+		}
+	
 		//Load-in all Request-config
 		tinyxml2::XMLElement* http_request = NULL;
 		http_request = http_element->FirstChildElement("request");
@@ -99,6 +125,10 @@ namespace kangaro{
 		}
 
 		return NULL;
+	}
+
+	server_dll_init* HttpServerConfig::GetFirstInitDll(){
+		return _first_dll_init;
 	}
 
 	void HttpServerConfig::FreeAllConfig(){
