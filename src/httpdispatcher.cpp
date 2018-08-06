@@ -68,12 +68,23 @@ namespace kangaro{
 
 			return h;
 		}
+
+		return NULL;
 	}
 
 	void HttpDispatcher::ReleaseResources(){
 		std::map<std::string, dll_res>::const_iterator ite = _dlls_loaded.cbegin();
 
+		http_dlib_unload dllUnload = NULL;
 		for (ite; ite != _dlls_loaded.cend(); ++ite){
+			//Call DLLUnload
+			dllUnload = (http_dlib_unload)kangaro_os::get_lib_funtion(ite->second.hmod, KANGARO_DLL_UNLOAD_FUNCNAME);
+			if (dllUnload != NULL){
+				dllUnload();
+				dllUnload = NULL;
+			}
+
+			//Free
 			kangaro_os::free_lib(ite->second.hmod);
 		}
 	}

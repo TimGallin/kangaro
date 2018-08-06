@@ -2,7 +2,6 @@
 #include "pouchserver.h"
 #include "httprecver.h"
 #include "httpconfig.h"
-#include "httputil.h"
 #include "httpsender.h"
 
 namespace kangaro{
@@ -44,7 +43,7 @@ namespace kangaro{
 			   If socket(2) (or bind(2)) fails, we (close the socket
 			   and) try the next address. */
 
-		for (rp = result; rp != NULL; rp->ai_next){
+		for (rp = result; rp != NULL; rp = rp->ai_next){
 			/*Create socket.*/
 			_listen_sd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
 			if (_listen_sd == kangaro_invalid_socket){
@@ -91,7 +90,6 @@ namespace kangaro{
 		}
 
 		return true;
-
 	}
 
 	void PouchSvr::DllsInit(){
@@ -181,7 +179,6 @@ namespace kangaro{
 
 							FD_SET(incoming, &master_set);
 						}
-
 					}
 					else{
 						/**********************************************/
@@ -191,7 +188,12 @@ namespace kangaro{
 						/* connection.                                */
 						/**********************************************/
 						Accept(master_set.fd_array[i]);
+
+						//Close socket
+						kangaro_os::soc_close(master_set.fd_array[i]);
+
 						FD_CLR(master_set.fd_array[i], &master_set);
+						--i;
 					}
 				}
 
@@ -206,8 +208,8 @@ namespace kangaro{
 		/*************************************************************/
 		for (i = 0; i <= (int)master_set.fd_count; ++i)
 		{
-			if (FD_ISSET(i, &master_set))
-				kangaro_os::soc_close(master_set.fd_array[i]);
+			//if (FD_ISSET(i, &master_set))
+			kangaro_os::soc_close(master_set.fd_array[i]);
 		}
 	}
 
@@ -225,14 +227,14 @@ namespace kangaro{
 
 		HTTPMessage httpmsg_request;
 		memset(&httpmsg_request, 0, sizeof(HTTPMessage));
-
+		 
 		HttpRecver recver;
 		if (recver.Process(s, httpmsg_request) != KANGA_OK){
 			return;
 		}
 
 		HTTPRespond httpmsg_respond;
-		memset(&httpmsg_respond, 0, sizeof(HTTPMessage));
+		memset(&httpmsg_respond, 0, sizeof(HTTPRespond));
 
 		request_conf* request = HttpServerConfig::GetInstance()->SelectRequestConfig(httpmsg_request.http_request_uri.abs_path);
 		if (request != NULL){
@@ -254,24 +256,8 @@ namespace kangaro{
 			httpsender::Respond(s, HTTP_STATUS_NOT_FOUND, NULL);
 		}
 
-		
-
-		//Release http_headers
-		while (httpmsg_request.http_headers != NULL)
-		{
-			kanga_headers* next = httpmsg_request.http_headers->next;
-
-			delete httpmsg_request.http_headers;
-			httpmsg_request.http_headers = next;
-		}
-
-		//Do not delete http_headers of httpmsg_respond,because its space is distributed in dll.
-
+	
 		//~HttpRecver will release the buffer of receiver.
-
-
-		//Close socket
-		kangaro_os::soc_close(s);
 	}
 
 }

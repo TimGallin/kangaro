@@ -93,13 +93,21 @@ namespace kangaro{
 	//Dynamic lib Function Type.
 	//---------------------------------------------
 
+	//Load Init 
+	//Name :"DllLoadin"
+	typedef int(*http_dlib_loadinit)();
+
+	//Respond release 
+	//Name :"DllReleaseRes"
+	typedef int(*http_dlib_release)(HTTPRespond* respond);
+
+	//Unload
+	//Name :"DllUnload"
+	//Remark: This function will be called before freelibrary().
+	typedef int(*http_dlib_unload)();
+
 	//Handle
 	typedef int(*http_dlib_enter_point) (HTTPMessage* _in, HTTPRespond* _out);
 
-	//Respond release
-	typedef int(*http_dlib_release)(HTTPRespond* respond);
-
-	//Load Init 
-	typedef int(*http_dlib_loadinit)();
 }
 #endif

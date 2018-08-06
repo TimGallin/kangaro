@@ -1,9 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
-<http port="50203" backlog="10" cros="true">
+<!---需要加载以进行初始化的DLL资源 -->
 <Init>
 <Dllres>E:/PwyRepo/RInvComponent/Src/InputVAT/Debug/InputVAT.dll</Dllres>
 </Init>
-	<request type="dlib" path="/recvinv" enterpoint="recv_inputvat" libpath="E:/PwyRepo/RInvComponent/Src/InputVAT/Debug/InputVAT.dll"></request>
+
+<http port="52320" backlog="10" cros="true" dlf_content_type="text/html;charset=utf-8">
+	<!---收票 -->
+	<request type="dlib" path="/recvinv" enterpoint="RecvInputvat" libpath="E:/PwyRepo/RInvComponent/Src/InputVAT/Debug/InputVAT.dll"></request>
+	<request type="dlib" path="/dkquery" enterpoint="DikouInputvat" libpath="E:/PwyRepo/RInvComponent/Src/InputVAT/Debug/InputVAT.dll"></request>
+	<request type="dlib" path="/fpcheck" enterpoint="SelectInputvat" libpath="E:/PwyRepo/RInvComponent/Src/InputVAT/Debug/InputVAT.dll"></request>
+	<request type="dlib" path="/fpcheckconfirm" enterpoint="SelAuthInputvat" libpath="E:/PwyRepo/RInvComponent/Src/InputVAT/Debug/InputVAT.dll"></request>
+	
+	<request type="dlib" path="/cryptctl" enterpoint="TaxCryptctl" libpath="E:/PwyRepo/RInvComponent/Src/InputVAT/Debug/InputVAT.dll"></request>
+	
+	<request type="dlib" path="/redirect" enterpoint="LocalRedirect" libpath="E:/PwyRepo/RInvComponent/Src/InputVAT/Debug/InputVAT.dll"></request>
+	<request type="dlib" path="/authtoken" enterpoint="PwyAuthToken" libpath="E:/PwyRepo/RInvComponent/Src/InputVAT/Debug/InputVAT.dll"></request>
+	<request type="dlib" path="/invdataauth" enterpoint="InvsqryAuth" libpath="E:/PwyRepo/RInvComponent/Src/InputVAT/Debug/InputVAT.dll"></request>
+	<request type="dlib" path="/invdatanoauth" enterpoint="InvsqryNotAuth" libpath="E:/PwyRepo/RInvComponent/Src/InputVAT/Debug/InputVAT.dll"></request>
+	
 </http>
 </config>

@@ -46,28 +46,28 @@ namespace kangaro{
 		_http_port = XML_ATTRIBUTE(http_element,"port");
 		_back_log = atoi(XML_ATTRIBUTE(http_element, "backlog"));
 		_default_content_type = XML_ATTRIBUTE(http_element, "dlf_content_type");
-		_CROS_permission = strcmp(XML_ATTRIBUTE(http_element, "cros"), "true") ? true : false;
+		_CROS_permission = strcmp(XML_ATTRIBUTE(http_element, "cros"), "true") == 0 ? true : false;
 
 		//Dll init config
-		tinyxml2::XMLElement* http_dllinit = http_element->FirstChildElement("Init");
+		tinyxml2::XMLElement* http_dllinit = doc.FirstChildElement("config")->FirstChildElement("Init")->ToElement();
 		if (http_dllinit != NULL){
-			server_dll_init* _last_dllinit = _first_dll_init;
-
 			tinyxml2::XMLElement* http_dllinitres = http_dllinit->FirstChildElement("Dllres");
 
+			server_dll_init* _last_dllinit = _first_dll_init;
 			while (http_dllinitres != NULL)
 			{
-				_last_dllinit = new server_dll_init;
-				_last_dllinit->lib_path = "";
-				_last_dllinit->next = NULL;
-
-				_last_dllinit->lib_path = http_dllinitres->GetText();
-
 				if (_first_dll_init == NULL){
+					_last_dllinit = new server_dll_init;
 					_first_dll_init = _last_dllinit;
 				}
-
-				_last_dllinit = _last_dllinit->next;
+				else{
+					_last_dllinit->next = new server_dll_init;
+					_last_dllinit = _last_dllinit->next;
+				}
+	
+				_last_dllinit->lib_path = "";
+				_last_dllinit->next = NULL;
+				_last_dllinit->lib_path = http_dllinitres->GetText();
 
 				http_dllinitres = http_dllinitres->NextSiblingElement("Dllres");
 			}
@@ -82,21 +82,24 @@ namespace kangaro{
 
 		request_conf* _last_request = _first_request;
 		while (http_request != NULL){
-			_last_request = new request_conf;
+			if (_first_request == NULL){
+				_last_request = new request_conf;
+				_first_request = _last_request;
+			}
+			else{
+				_last_request->next = new request_conf;
+				_last_request = _last_request->next;
+			}
 
 			_last_request->type = 0;
 			_last_request->path = XML_ATTRIBUTE(http_request, "path");
 			_last_request->enter_point = XML_ATTRIBUTE(http_request, "enterpoint");
 			_last_request->lib_path = XML_ATTRIBUTE(http_request, "libpath");
 
-			if (_first_request == NULL){
-				_first_request = _last_request;
-			}
-
-			_last_request = _last_request->next;
-
 			http_request = http_request->NextSiblingElement("request");
 		}
+
+		LoadDefaultConfig();
 
 		return KANGA_OK;
 	}
@@ -148,7 +151,7 @@ namespace kangaro{
 		}
 
 		if (_default_content_type.empty()){
-			_http_port = "application/x-www-form-urlencoded";
+			_default_content_type = "application/x-www-form-urlencoded";
 		}
 
 		if (_back_log == 0){

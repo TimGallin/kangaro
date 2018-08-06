@@ -12,6 +12,7 @@ namespace kangaro{
 	}
 
 	HttpRecver::~HttpRecver(){
+		FreeAllBuffer(_head_buf);
 	}
 
 	void HttpRecver::InitBuffer(){
